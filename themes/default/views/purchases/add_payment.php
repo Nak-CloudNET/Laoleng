@@ -389,7 +389,7 @@
 
         $('#amount_1').on('keyup change', function () {
 			var us_paid = parseFloat($('#amount_1').val()-0);
-			var disc = parseFloat($('#discount').val() - 0)
+            var disc = parseFloat($('#discount').val() - 0);
 			var amount = parseFloat($('#amount_1').attr('amount')-0);
 			amount -= disc;
 			var p_val = $('#paid_by_1').val();
@@ -419,10 +419,7 @@
 				}
 				
 			}else {
-				if(!us_paid) {					
-					$('#amount_1').val(0);
-					$('#amount_1').select();
-				}else if(us_paid > amount) {
+                if (us_paid > amount) {
 					$('#amount_1').val(amount);
 					$('#amount_1').select();
 				}
