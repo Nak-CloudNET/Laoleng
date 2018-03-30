@@ -2330,13 +2330,14 @@ class Site extends CI_Model
 			$real_item_qty = $quantity * $qty_unit;
 		}else{
 			$real_item_qty = $quantity;
-		}
-		$warehouse_qty  = $this->getWarehouseQty($product_id,$warehouse_id)->quantity;
-		$warehouse_qty += $old_sqty;
-        if (($real_item_qty > $warehouse_qty && !$this->Settings->overselling) || ($warehouse_qty <= 0 && !$this->Settings->overselling)) {
+        }
+        $warehouse_qty = $this->getWarehouseQty($product_id, $warehouse_id)->quantity;
+        $warehouse_qty += $old_sqty;
+
+        if (($real_item_qty > $warehouse_qty && $this->Settings->overselling == 1) || ($warehouse_qty <= 0 && $this->Settings->overselling == 1)) {
             $this->session->set_flashdata('error', sprintf(lang("quantity_out_of_stock_for_%s"), ($pi->product_name ? $pi->product_name : $product_name)));
             redirect($_SERVER["HTTP_REFERER"]);
-        } elseif ($real_item_qty > 0) {
+        } else {
 			$getProduct = $this->site->getProductByID($product_id);
 			$cost[] = array(
 				'date' 				=> date('Y-m-d'),
