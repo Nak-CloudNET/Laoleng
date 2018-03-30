@@ -1302,7 +1302,6 @@ function loadItems() {
             $('#ttax2').text(formatRoDecimal(invoice_tax));
         }
         $('#gtotal').text(formatRoDecimal(gtotal));
-        
 		
     }
 }
