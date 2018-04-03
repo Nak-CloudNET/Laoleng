@@ -1625,7 +1625,7 @@ class Sales extends MY_Controller
 				->join('payments', 'payments.sale_id = sales.id', 'left')
 				->where('payment_status !=', 'paid')
 				->where(array('sale_status !=' => 'ordered'))
-				->having('grand_total != return_sale')
+                //->having('grand_total != return_sale')
 				->group_by('sales.id');
                 if (count($warehouses > 1)) {
                     $this->db->where_in('sales.warehouse_id', $warehouses);
@@ -1648,7 +1648,7 @@ class Sales extends MY_Controller
 			->join('payments', 'payments.sale_id = sales.id', 'left')
 			->where(array('payment_status !=' => 'paid'))
 			->where(array('sale_status !=' => 'ordered'))
-			->having('grand_total != return_sale')
+                //->having('grand_total != return_sale')
 			->group_by('sales.id');
 			if(isset($_REQUEST['d'])){
 				$date = $_GET['d'];

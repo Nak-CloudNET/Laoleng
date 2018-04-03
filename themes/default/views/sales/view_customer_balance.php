@@ -488,19 +488,6 @@
 </div>
 <script>
 	$(document).ready(function(){
-		/*
-		$("#excel").click(function(e){
-			e.preventDefault();
-			window.location.href = "<?=site_url('Sales/getSalesAll/0/xls/')?>";
-			return false;
-		});
-		$('#pdf').click(function (event) {
-            event.preventDefault();
-            window.location.href = "<?=site_url('Sales/getSalesAll/pdf/?v=1'.$v)?>";
-            return false;
-        });
-		*/
-		
 		$('body').on('click', '#combine_pay', function() {
 			 if($('.checkbox').is(":checked") === false){
                     alert('Please select at least one.');
