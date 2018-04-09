@@ -2497,7 +2497,6 @@ class Sales_model extends CI_Model
     public function returnSale($data = array(), $items = array(), $payment = array())
     {
 
-		//$this->erp->print_arrays($items);
         $sale_items = $this->site->getAllSaleItems($data['sale_id']);
 
 		foreach($items as $g){
@@ -2591,12 +2590,12 @@ class Sales_model extends CI_Model
                 $this->site->syncQuantity(NULL, NULL, NULL, $item['product_id']);
             }
             if (!empty($payment)) {
-                $payment['sale_id'] = $data['sale_id'];
-                $payment['return_id'] = $return_id;
-                $payment['pos_paid'] = $payment['amount'];
+                $payment['sale_id']     = $data['sale_id'];
+                $payment['return_id']   = $return_id;
+                $payment['pos_paid']    = $payment['amount'];
                 $this->db->insert('payments', $payment);
-                if ($this->site->getReference('pp') == $data['reference_no']) {
-                    $this->site->updateReference('pp');
+                if ($this->site->getReference('pp', $payment['biller_id']) == $payment['reference_no']) {
+                    $this->site->updateReference('pp', $payment['biller_id']);
                 }
 
             }

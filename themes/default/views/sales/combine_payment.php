@@ -27,23 +27,23 @@ $(".amount_paid_line").on('keyup',function() {
     }
     calculateSum();
 });
-		
+
 function calculateSum() {
 	var sum_discount = 0;
 	//iterate through each textboxes and add the values
     $(".discount_paid").each(function() {
-        //add only if the value is number 
+        //add only if the value is number
         if (!isNaN(this.value) && this.value.length != 0) {
             sum_discount += parseFloat(this.value);
         }
     });
 	$('#total_discount').text(formatDecimal(sum_discount));
     $("#discount").val(formatDecimal(sum_discount));
-	
+
     var sum = 0;
     //iterate through each textboxes and add the values
     $(".amount_paid_line").each(function() {
-        //add only if the value is number 
+        //add only if the value is number
         if (!isNaN(this.value) && this.value.length != 0) {
             sum += parseFloat(this.value);
         }
@@ -55,11 +55,10 @@ function calculateSum() {
 $("#add_submit").on('click', function(){
     var sum = 0;
     $(".amount_paid_line").each(function() {
+        //add only if the value is number
+        var val     = $(this).val();
         var balance = removeCommas($(this).closest('tr').find('td.balance').text());
-        //add only if the value is number 
-        var val = $(this).val();
-        var balance = removeCommas($(this).closest('tr').find('td.balance').text());
-        if(val > balance){
+        if(parseFloat(val) > parseFloat(balance)){
             isValid = false;
             $(this).closest(".f-cus").focus();
             return false;
@@ -67,7 +66,7 @@ $("#add_submit").on('click', function(){
 			isValid = true;
 		}
     });
-    
+
     if(isValid == false){
         alert("Your Amount is greater than Balance");
         return false;
@@ -78,7 +77,7 @@ $(".remove_line").on('click',function() {
 	var row = $(this).closest('tr').focus();
 	row.remove();
 	var total_balance = 0;
-	var total_amount_paid = 0; 
+	var total_amount_paid = 0;
 	$('#CompTable tr').each(function() {
 		var balance = $(this).find(".balance").text();
 		var amount_paid = $(this).find(".amount_paid_line").val();
@@ -87,29 +86,29 @@ $(".remove_line").on('click',function() {
 			total_amount_paid += parseFloat(amount_paid);
 		}
 	});
-	
+
 	$('#CompTable tfoot').each(function() {
 	  $('#total_balance').text(total_balance);
 	  $('#paid_amount').text(total_amount_paid);
 	  $('#amount_1').val(total_amount_paid);
-	  
+
 	});
-    
-	
+
+
 });
 
-    $("#slref").attr('readonly','readonly');
-    $('#ref_st').on('ifChanged', function() {
-      if ($(this).is(':checked')) {
-        $("#slref").prop('readonly', false);
-        $("#slref").val("");
-      }else{
-        $("#slref").prop('readonly', true);
-        var temp = $("#temp_reference_no").val();
-        $("#slref").val(temp);
-        
-      }
-    });
+$("#slref").attr('readonly','readonly');
+$('#ref_st').on('ifChanged', function() {
+  if ($(this).is(':checked')) {
+    $("#slref").prop('readonly', false);
+    $("#slref").val("");
+  }else{
+    $("#slref").prop('readonly', true);
+    var temp = $("#temp_reference_no").val();
+    $("#slref").val(temp);
+
+  }
+});
 
 </script>
 
@@ -144,8 +143,8 @@ $(".remove_line").on('click',function() {
                         foreach ($combine_sales as $combine_sale) { ?>
                             <tr class="row<?= $combine_sale->id ?>">
                                 <td><?= $this->erp->hrld($combine_sale->date); ?></td>
-                                <td><?= $combine_sale->reference_no; ?></td>                           
-								<td class="balance" val='<?=$combine_sale->balance?>'><?= $this->erp->formatDecimal($combine_sale->balance); ?></td>
+                                <td><?= $combine_sale->reference_no; ?></td>
+								<td class="balance" val='<?=$this->erp->formatDecimal($combine_sale->balance)?>'><?= $this->erp->formatDecimal($combine_sale->balance); ?></td>
                                 <td><input type="text" name="discount_paid[]" class="discount_paid form-control" value="0" /></td>
 								<td class="col-xs-3">
 									<input type="hidden" name="combine_payment" class="form-control" value="<?= $combine_payment; ?>" id="combine_payment">
@@ -158,7 +157,7 @@ $(".remove_line").on('click',function() {
 									<i class="fa fa-2x remove_line">&times;</i>
 								</td>
                             </tr>
-                        <?php 
+                        <?php
 						$total += $combine_sale->balance;
                         $tamountpaid += $combine_sale->balance;
 						}
@@ -177,7 +176,7 @@ $(".remove_line").on('click',function() {
                     </tfoot>
                 </table>
             </div>
-			
+
 			<?php if ($Owner || $Admin) { ?>
 				<div class="form-group" style="display:none !important;">
 					<?= lang("biller", "biller"); ?>
@@ -198,7 +197,7 @@ $(".remove_line").on('click',function() {
 
 				echo form_input($biller_input);
 			}
-			?> 
+			?>
 
             <div class="row">
                 <?php if ($Owner || $Admin) { ?>
@@ -214,7 +213,7 @@ $(".remove_line").on('click',function() {
                     <?= lang("reference_no", "slref"); ?>
                     <div style="float:left;width:100%;">
                         <div class="form-group">
-                            <div class="input-group">  
+                            <div class="input-group">
                                     <?php echo form_input('reference_no', $reference ? $reference :"",'class="form-control input-tip" id="slref"'); ?>
                                     <input type="hidden"  name="temp_reference_no"  id="temp_reference_no" value="<?= $reference ? $reference :"" ?>" />
                                 <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
@@ -227,7 +226,7 @@ $(".remove_line").on('click',function() {
 
             </div>
             <div class="clearfix"></div>
-			
+
             <div id="payments">
 
                 <div class="well well-sm well_1">
@@ -413,7 +412,7 @@ $(".remove_line").on('click',function() {
                 });
             }
         });
-        
+
 		$(document).on('change', '.paid_by', function () {
             var p_val = $(this).val();
             $('#rpaidby').val(p_val);
@@ -444,7 +443,7 @@ $(".remove_line").on('click',function() {
                 $('.gc').hide();
             }
         });
-		
+
         $('#pcc_no_1').change(function (e) {
             var pcc_no = $(this).val();
             localStorage.setItem('pcc_no_1', pcc_no);
@@ -463,7 +462,7 @@ $(".remove_line").on('click',function() {
 
             $('#pcc_type_1').select2("val", CardType);
         });
-		
+
 		$('#discount').on('keyup change', function() {
 			var n = $('.discount_paid').length;
 			var val = $(this).val();
@@ -479,7 +478,7 @@ $(".remove_line").on('click',function() {
 							item_discount = ((((balance) * parseFloat(pds[0])) / 100));
 						} else {
 							item_discount = (ds/n);
-							
+
 						}
 					} else {
 						 item_discount = (ds/n);
@@ -497,7 +496,7 @@ $(".remove_line").on('click',function() {
 			$('#paid_amount').text(formatDecimal(paid_amount));
 			$('#amount_1').val(formatDecimal(paid_amount));
 		});
-		
+
 		$('#amount_1').on('keyup change', function(){
 			var amount = parseFloat($(this).val() - 0);
 			if(!amount){
@@ -509,22 +508,22 @@ $(".remove_line").on('click',function() {
 					var paid = (parseFloat($(this).attr('val')) - discount);
 					totalAmount = totalAmount + paid;
 					if(((amount > 0) && ((amount - paid) > 0)) || ((amount > 0) && ((amount - paid) == 0))){
-						$(this).parent().find('.amount_paid_line').val(paid);
+						$(this).parent().find('.amount_paid_line').val(formatDecimal(paid));
 						amount= amount - paid;
 					}else if((amount > 0) && ((amount - paid) < 0)){
-						$(this).parent().find('.amount_paid_line').val(amount);
-						amount = 0; 
+						$(this).parent().find('.amount_paid_line').val(formatDecimal(amount));
+						amount = 0;
 					}else{
-						
+
 						if(amount < 0) {
 							$(this).parent().find('.amount_paid_line').val(0);
 							$("#amount_1").val(0);
 						}else {
 							$(this).parent().find('.amount_paid_line').val(0);
 						}
-					}	
+					}
 				});
-				
+
 				var curAmount = parseFloat($(this).val());
 				if(curAmount>totalAmount){
 					$(this).val(totalAmount);
@@ -536,11 +535,11 @@ $(".remove_line").on('click',function() {
 						$('#paid_amount').text(formatDecimal(0));
 					}
 				}
-			
+
 		});
-			
+
 		$('.paid_by').change(function () {
-			
+
             var p_val = $(this).val();
             $('#rpaidby').val(p_val);
             if (p_val == 'cash') {
@@ -594,7 +593,7 @@ $(".remove_line").on('click',function() {
 			}
 			$('#amount_1').trigger('keyup');
         });
-			
+
 		$('#pcc_no_1').change(function (e) {
             var pcc_no = $(this).val();
             localStorage.setItem('pcc_no_1', pcc_no);
@@ -613,7 +612,7 @@ $(".remove_line").on('click',function() {
 
             $('#pcc_type_1').select2("val", CardType);
         });
-        
+
         $("#date").datetimepicker({
             format: site.dateFormats.js_ldate,
             fontAwesome: true,
@@ -625,10 +624,10 @@ $(".remove_line").on('click',function() {
             startView: 2,
             forceParse: 0
         }).datetimepicker('update', new Date());
-		
+
 		/**=========================**/
 		$('.amount').trigger("change");
-		
+
 		function formatDecimals(x) {
 			return parseFloat(parseFloat(x).toFixed(7));
 		}
@@ -645,7 +644,7 @@ $(".remove_line").on('click',function() {
 				}
             });
         }
-		
+
         function autoMoney(value, rate){
         	$(".amount_other").each(function(){
 				if(value != 0){
@@ -655,7 +654,7 @@ $(".remove_line").on('click',function() {
 				}
             });
         }
-		
+
 		$('input[name="amount-paid"]').live('change keyup paste',function(){
 			value = $(this).val();
 			autotherMoney(value);
@@ -668,11 +667,11 @@ $(".remove_line").on('click',function() {
 			autoMoney(value, rate);
 			autotherMoney(val);
 		});
-		
+
 		/**============================**/
-		
+
 	});
-	
+
 	function removeCommas(str) {
 		while (str.search(",") >= 0) {
 			str = (str + "").replace(',', '');

@@ -5569,12 +5569,12 @@ class Sales extends MY_Controller
 
         if ($this->form_validation->run() == true)
         {
-            $sale = $this->sales_model->getInvoiceByID($id);
-            $quantity = "quantity";
-            $product = "product";
-            $unit_cost = "unit_cost";
-            $tax_rate = "tax_rate";
-            $reference = $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('re',$sale->biller_id);
+            $sale       = $this->sales_model->getInvoiceByID($id);
+            $quantity   = "quantity";
+            $product    = "product";
+            $unit_cost  = "unit_cost";
+            $tax_rate   = "tax_rate";
+            $reference  = $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('re',$sale->biller_id);
             
 			if ($this->Owner || $this->Admin || $this->Settings->allow_change_date == 1) {
                 $date = $this->erp->fld(trim($this->input->post('date')));
@@ -5582,38 +5582,38 @@ class Sales extends MY_Controller
                 $date = date('Y-m-d H:i:s');
             }
 
-            $return_surcharge = $this->input->post('return_surcharge') ? $this->input->post('return_surcharge') : 0;
-            $note = $this->erp->clear_tags($this->input->post('note'));
-			$shipping = $this->input->post('shipping');
+            $return_surcharge   = $this->input->post('return_surcharge') ? $this->input->post('return_surcharge') : 0;
+            $note               = $this->erp->clear_tags($this->input->post('note'));
+			$shipping           = $this->input->post('shipping');
 
-            $total = 0;
-            $product_tax = 0;
-            $order_tax = 0;
-            $product_discount = 0;
-            $order_discount = 0;
-            $percentage = '%';
+            $total              = 0;
+            $product_tax        = 0;
+            $order_tax          = 0;
+            $product_discount   = 0;
+            $order_discount     = 0;
+            $percentage         = '%';
             $i = isset($_POST['product_code']) ? sizeof($_POST['product_code']) : 0;
             for ($r = 0; $r < $i; $r++) {
-                $item_id = $_POST['product_id'][$r];
-                $item_type = $_POST['product_type'][$r];
-                $item_code = $_POST['product_code'][$r];
-				$item_cost = $_POST['product_cost'][$r];
-                $item_name = $_POST['product_name'][$r];
-                $sale_item_id = $_POST['sale_item_id'][$r];
-                $item_option = isset($_POST['product_option'][$r]) && $_POST['product_option'][$r] != 'false' ? $_POST['product_option'][$r] : NULL;
-                //$option_details = $this->sales_model->getProductOptionByID($item_option);
-                $real_unit_price = $this->erp->formatDecimal($_POST['real_unit_price'][$r]);
-                $unit_price = $this->erp->formatDecimal($_POST['unit_price'][$r]);
-                $item_quantity = $_POST['quantity'][$r];
-                $item_serial = isset($_POST['serial'][$r]) ? $_POST['serial'][$r] : '';
-                $item_tax_rate = isset($_POST['product_tax'][$r]) ? $_POST['product_tax'][$r] : NULL;
-                $item_discount = isset($_POST['product_discount'][$r]) ? $_POST['product_discount'][$r] : NULL;
+                $item_id            = $_POST['product_id'][$r];
+                $item_type          = $_POST['product_type'][$r];
+                $item_code          = $_POST['product_code'][$r];
+				$item_cost          = $_POST['product_cost'][$r];
+                $item_name          = $_POST['product_name'][$r];
+                $sale_item_id       = $_POST['sale_item_id'][$r];
+                $item_option        = isset($_POST['product_option'][$r]) && $_POST['product_option'][$r] != 'false' ? $_POST['product_option'][$r] : NULL;
+                //$option_details   = $this->sales_model->getProductOptionByID($item_option);
+                $real_unit_price    = $this->erp->formatDecimal($_POST['real_unit_price'][$r]);
+                $unit_price         = $this->erp->formatDecimal($_POST['unit_price'][$r]);
+                $item_quantity      = $_POST['quantity'][$r];
+                $item_serial        = isset($_POST['serial'][$r]) ? $_POST['serial'][$r] : '';
+                $item_tax_rate      = isset($_POST['product_tax'][$r]) ? $_POST['product_tax'][$r] : NULL;
+                $item_discount      = isset($_POST['product_discount'][$r]) ? $_POST['product_discount'][$r] : NULL;
 
                 if (isset($item_code) && isset($real_unit_price) && isset($unit_price) && isset($item_quantity)) {
                     $product_details = $item_type != 'manual' ? $this->sales_model->getProductByCode($item_code) : NULL;
 
 					if (isset($item_discount)) {
-                        $discount = $item_discount;
+                        $discount   = $item_discount;
                         $dpos = strpos($discount, $percentage);
                         if ($dpos !== false) {
                             $pds = explode("%", $discount);
@@ -5623,10 +5623,10 @@ class Sales extends MY_Controller
                         }
                     }
 					
-                    $unit_price = $this->erp->formatDecimal($unit_price, 4);
-                    $item_net_price = $unit_price;
-                    $pr_item_discount = $this->erp->formatDecimal($pr_discount);
-                    $product_discount += $pr_item_discount;
+                    $unit_price         = $this->erp->formatDecimal($unit_price, 4);
+                    $item_net_price     = $unit_price;
+                    $pr_item_discount   = $this->erp->formatDecimal($pr_discount);
+                    $product_discount   += $pr_item_discount;
                     $pr_tax = 0; $pr_item_tax = 0; $item_tax = 0; $tax = "";
 
                     if (isset($item_tax_rate) && $item_tax_rate != 0) {
@@ -5661,25 +5661,25 @@ class Sales extends MY_Controller
                     $subtotal = ((($item_net_price * $item_quantity) - $pr_item_discount) + $pr_item_tax);
 
                     $products[] = array(
-                        'product_id' => $item_id,
-                        'product_code' => $item_code,
-                        'product_name' => $item_name,
-                        'product_type' => $item_type,
-                        'option_id' => $item_option,
-                        'net_unit_price' => $item_net_price,
-                        'unit_price' => $this->erp->formatDecimal($unit_price),
-						'unit_cost' => $item_cost,
-                        'quantity' => $item_quantity,
-                        'warehouse_id' => $sale->warehouse_id,
-                        'item_tax' => $pr_item_tax,
-                        'tax_rate_id' => $pr_tax,
-                        'tax' => $tax,
-                        'discount' => $item_discount,
-                        'item_discount' => $pr_item_discount,
-                        'subtotal' => $this->erp->formatDecimal($subtotal)?$this->erp->formatDecimal($subtotal):0,
-                        'serial_no' => $item_serial,
-                        'real_unit_price' => $real_unit_price,
-                        'sale_item_id' => $sale_item_id
+                        'product_id'        => $item_id,
+                        'product_code'      => $item_code,
+                        'product_name'      => $item_name,
+                        'product_type'      => $item_type,
+                        'option_id'         => $item_option,
+                        'net_unit_price'    => $item_net_price,
+                        'unit_price'        => $this->erp->formatDecimal($unit_price),
+						'unit_cost'         => $item_cost,
+                        'quantity'          => $item_quantity,
+                        'warehouse_id'      => $sale->warehouse_id,
+                        'item_tax'          => $pr_item_tax,
+                        'tax_rate_id'       => $pr_tax,
+                        'tax'               => $tax,
+                        'discount'          => $item_discount,
+                        'item_discount'     => $pr_item_discount,
+                        'subtotal'          => $this->erp->formatDecimal($subtotal)?$this->erp->formatDecimal($subtotal):0,
+                        'serial_no'         => $item_serial,
+                        'real_unit_price'   => $real_unit_price,
+                        'sale_item_id'      => $sale_item_id
                     );
 
                     $total += $subtotal;
@@ -5752,21 +5752,21 @@ class Sales extends MY_Controller
 			
             if ($this->input->post('amount-paid') && $this->input->post('amount-paid') > 0) {
                 $payment = array(
-                    'date' => $date,
-                    'reference_no' => $this->input->post('payment_reference_no'),
-                    'amount' => $this->erp->formatDecimal($this->input->post('amount-paid')),
-                    'paid_by' => $this->input->post('paid_by'),
-                    'cheque_no' => $this->input->post('cheque_no'),
-                    'cc_no' => $this->input->post('pcc_no'),
-                    'cc_holder' => $this->input->post('pcc_holder'),
-                    'cc_month' => $this->input->post('pcc_month'),
-                    'cc_year' => $this->input->post('pcc_year'),
-                    'cc_type' => $this->input->post('pcc_type'),
-                    'created_by' => $this->session->userdata('user_id'),
-                    'type' => 'returned',
-                    'biller_id' => $sale->biller_id ? $sale->biller_id : $this->default_biller_id,
-					'add_payment' => '1',
-					'bank_account' => $this->input->post('bank_account')
+                    'date'          => $date,
+                    'reference_no'  => $this->input->post('payment_reference_no'),
+                    'amount'        => $this->erp->formatDecimal($this->input->post('amount-paid')),
+                    'paid_by'       => $this->input->post('paid_by'),
+                    'cheque_no'     => $this->input->post('cheque_no'),
+                    'cc_no'         => $this->input->post('pcc_no'),
+                    'cc_holder'     => $this->input->post('pcc_holder'),
+                    'cc_month'      => $this->input->post('pcc_month'),
+                    'cc_year'       => $this->input->post('pcc_year'),
+                    'cc_type'       => $this->input->post('pcc_type'),
+                    'created_by'    => $this->session->userdata('user_id'),
+                    'type'          => 'returned',
+                    'biller_id'     => $sale->biller_id ? $sale->biller_id : $this->default_biller_id,
+					'add_payment'   => '1',
+					'bank_account'  => $this->input->post('bank_account')
                 );
             } else {
                 $payment = array();
@@ -5796,15 +5796,15 @@ class Sales extends MY_Controller
             redirect("sales/return_sales");
         } else {
 
-            $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
-			$inv = $this->sales_model->getInvoiceByID($id);
-			$return = $this->sales_model->getReturnSaleBySID($id);
-			$discount = $this->sales_model->getSaleDiscounts($id);
-			$inv->refunded = $return->refunded;
-			$inv->paid = $inv->paid - $discount;
-            $this->data['inv'] = $inv;
-            $inv_items = $this->sales_model->getAllInvoiceReItems($id);
-			$qty_balance = $this->sales_model->getQuantityBalanceBySaleID($id);
+            $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+			$inv                    = $this->sales_model->getInvoiceByID($id);
+			$return                 = $this->sales_model->getReturnSaleBySID($id);
+			$discount               = $this->sales_model->getSaleDiscounts($id);
+			$inv->refunded          = $return->refunded;
+			$inv->paid              = $inv->paid - $discount;
+            $this->data['inv']      = $inv;
+            $inv_items              = $this->sales_model->getAllInvoiceReItems($id);
+			$qty_balance            = $this->sales_model->getQuantityBalanceBySaleID($id);
             if ($this->data['inv']->sale_status == 'returned' && $qty_balance->quantity <= 0) {
                 $this->session->set_flashdata('error', lang("sale_status_x_competed"));
                 redirect($_SERVER["HTTP_REFERER"]);
@@ -9008,7 +9008,8 @@ class Sales extends MY_Controller
 					'attachment' 	=>$photo,
 					'bank_account' 	=> $this->input->post('bank_account'),
 					'add_payment' 	=> '1'
-				);	
+				);
+				$this->erp->print_arrays($payment);
 				if($payment['amount'] > 0 ){
 					$this->sales_model->addSalePaymentMulti($payment);
 				}
@@ -9119,35 +9120,35 @@ class Sales extends MY_Controller
                 $photo = $this->upload->file_name;
             }
 			
-			$sale_id_arr = $this->input->post('sale_id');
-			$biller_id = $this->input->post('biller');
-			$amount_paid_arr = $this->input->post('amount_paid_line');
-			$i = 0;
-			$reference_no = $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('sp', $biller_id);
+			$sale_id_arr        = $this->input->post('sale_id');
+			$biller_id          = $this->input->post('biller');
+			$amount_paid_arr    = $this->input->post('amount_paid_line');
+			$i                  = 0;
+			$reference_no       = $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('sp', $biller_id);
 			foreach($sale_id_arr as $sale_id){
 				$get_sale = $this->sales_model->getSaleById($sale_id);
 				
 				$payment = array(
-					'date' => $date,
-					'sale_id' => $sale_id,
-					'reference_no' => $reference_no,
-					'amount' => $amount_paid_arr[$i],
-					'paid_by' => $this->input->post('paid_by'),
-					'cheque_no' => $this->input->post('cheque_no'),
-					'cc_no' => $this->input->post('paid_by') == 'gift_card' ? $this->input->post('gift_card_no') : $this->input->post('pcc_no'),
-					'cc_holder' => $this->input->post('pcc_holder'),
-					'cc_month' => $this->input->post('pcc_month'),
-					'cc_year' => $this->input->post('pcc_year'),
-					'cc_type' => $this->input->post('pcc_type'),
-					'note' => $this->input->post('note'),
-					'created_by' => $this->session->userdata('user_id'),
-					'type' => 'received',
-					'biller_id'	=> $biller_id,
-					'attachment' =>$photo,
-					'bank_account' => $this->input->post('bank_account'),
-					'add_payment' => '1'
+					'date'          => $date,
+					'sale_id'       => $sale_id,
+					'reference_no'  => $reference_no,
+					'amount'        => $amount_paid_arr[$i],
+					'paid_by'       => $this->input->post('paid_by'),
+					'cheque_no'     => $this->input->post('cheque_no'),
+					'cc_no'         => $this->input->post('paid_by') == 'gift_card' ? $this->input->post('gift_card_no') : $this->input->post('pcc_no'),
+					'cc_holder'     => $this->input->post('pcc_holder'),
+					'cc_month'      => $this->input->post('pcc_month'),
+					'cc_year'       => $this->input->post('pcc_year'),
+					'cc_type'       => $this->input->post('pcc_type'),
+					'note'          => $this->input->post('note'),
+					'created_by'    => $this->session->userdata('user_id'),
+					'type'          => 'received',
+					'biller_id'	    => $biller_id,
+					'attachment'    => $photo,
+					'bank_account'  => $this->input->post('bank_account'),
+					'add_payment'   => '1'
 				);
-				
+
 				if($payment['amount'] > 0 ){
 					$this->sales_model->addSalePaymentMulti($payment);
 				}
@@ -9167,25 +9168,24 @@ class Sales extends MY_Controller
 				$biller_id = $setting->default_biller;
 			}
 			
-			$this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
-			$this->data['billers'] = $this->site->getAllCompanies('biller');
-			$this->data['bankAccounts'] =  $this->site->getAllBankAccounts();
+			$this->data['error']            = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+			$this->data['billers']          = $this->site->getAllCompanies('biller');
+			$this->data['bankAccounts']     =  $this->site->getAllBankAccounts();
             $this->data['userBankAccounts'] =  $this->site->getAllBankAccountsByUserID();
-            $combine_payment = $this->sales_model->getCombinePaymentBySaleId($arr);
-            $this->data['combine_sales'] = $combine_payment;
-            $this->data['payment_ref'] = ''; //$this->site->getReference('sp');
-			if ($Owner || $Admin || !$this->session->userdata('biller_id')){
-				$biller_id = $this->site->get_setting()->default_biller;
-				$this->data['reference'] = $this->site->getReference('pp',$biller_id);
-			}else{
-				$biller_id = $this->session->userdata('biller_id');
-				$this->data['reference'] = $this->site->getReference('pp',$biller_id);
-				
+            $combine_payment                = $this->sales_model->getCombinePaymentBySaleId($arr);
+            $this->data['combine_sales']    = $combine_payment;
+            $this->data['payment_ref']      = ''; //$this->site->getReference('sp');
+			if ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')){
+				$biller_id                  = $this->site->get_setting()->default_biller;
+				$this->data['reference']    = $this->site->getReference('pp',$biller_id);
+			} else {
+				$biller_id                  = $this->session->userdata('biller_id');
+				$this->data['reference']    = $this->site->getReference('pp',$biller_id);
 			}
 
-			$this->data['idd'] = $idd;
-			$this->data['setting'] = $setting;
-            $this->data['modal_js'] = $this->site->modal_js();
+			$this->data['idd']              = $idd;
+			$this->data['setting']          = $setting;
+            $this->data['modal_js']         = $this->site->modal_js();
 			$this->data['customer_balance'] = "customer_balance"; 
 
             $this->load->view($this->theme . 'sales/combine_payment', $this->data);
@@ -13535,19 +13535,19 @@ class Sales extends MY_Controller
 			    $date = date('Y-m-d H:i:s');
             }
          
-			$sale_id = $this->input->post('sale_id');
-			$sale_reference_no = $this->input->post('sale_reference');
-			$customer_id = $this->input->post('customer_id');
-			$biller_id = $this->input->post('biller_id');
-			$customer = $this->site->getCompanyByID($customer_id);
-			$address = $customer->address .' '. $customer->city .' '. $customer->state .' '. $customer->postal_code .' '. $customer->country .'<br/> Tel: '. $customer->phone .' Email: '. $customer->email;
-			$note = $this->input->post('note');
-			$created_by = $this->input->post('saleman_by');
-			$pos = $this->input->post("pos");
-			$delivery_by = $this->input->post('delivery_by');
-			$do_reference_no = ($this->input->post('delivery_reference') ? $this->input->post('delivery_reference') : $this->site->getReference('do',$biller_id));
-			$type = $this->input->post('status');
-			$delivery_status = $this->input->post('delivery_status');
+			$sale_id            = $this->input->post('sale_id');
+			$sale_reference_no  = $this->input->post('sale_reference');
+			$customer_id        = $this->input->post('customer_id');
+			$biller_id          = $this->input->post('biller_id');
+			$customer           = $this->site->getCompanyByID($customer_id);
+			$address            = $customer->address .' '. $customer->city .' '. $customer->state .' '. $customer->postal_code .' '. $customer->country .'<br/> Tel: '. $customer->phone .' Email: '. $customer->email;
+			$note               = $this->input->post('note');
+			$created_by         = $this->input->post('saleman_by');
+			$pos                = $this->input->post("pos");
+			$delivery_by        = $this->input->post('delivery_by');
+			$do_reference_no    = ($this->input->post('delivery_reference') ? $this->input->post('delivery_reference') : $this->site->getReference('do',$biller_id));
+			$type               = $this->input->post('status');
+			$delivery_status    = $this->input->post('delivery_status');
 			$delivery = array(
 				'date'              => $date,
 				'sale_id'           => $sale_id,
@@ -13568,31 +13568,33 @@ class Sales extends MY_Controller
 			
 			if($delivery){
 				
-				$product_id     = $this->input->post('product_id');
-				$warehouse_id   = $this->input->post('warehouse_id');
-				$quantity       = $this->input->post('bquantity');  
-				$quantity_received = $this->input->post('cur_quantity_received');
-				$option_id = $this->input->post('option_id');
-				$sale_item_id = $this->input->post('delivery_id');
-				$product_id = $this->input->post('product_id');
-				$product_code = $this->input->post('product_code');
-				$product_name = $this->input->post('product_name');
-				$product_type = $this->input->post('product_type');
-				$items_id = $this->input->post('delivery_id');
-				$piece = $this->input->post('piece');
-				$wpiece = $this->input->post('wpiece');
+				$product_id         = $this->input->post('product_id');
+				$warehouse_id       = $this->input->post('warehouse_id');
+				$quantity           = $this->input->post('bquantity');
+				$quantity_received  = $this->input->post('cur_quantity_received');
+				$option_id          = $this->input->post('option_id');
+				$sale_item_id       = $this->input->post('delivery_id');
+				$product_id         = $this->input->post('product_id');
+				$product_code       = $this->input->post('product_code');
+				$product_name       = $this->input->post('product_name');
+				$product_type       = $this->input->post('product_type');
+				$items_id           = $this->input->post('delivery_id');
+				$piece              = $this->input->post('piece');
+				$wpiece             = $this->input->post('wpiece');
 				
-				$pro_num = sizeof($product_id);
+				$pro_num            = sizeof($product_id);
 				for($i=0; $i<$pro_num; $i++) {
-					$rec_quantity = $quantity_received[$i];
-					$b_quantity = $quantity[$i];
+					$rec_quantity   = $quantity_received[$i];
+					$b_quantity     = $quantity[$i];
 					$ending_balance = $quantity[$i] - $quantity_received[$i];
-					$unit_cost = $this->sales_model->getCurCost($product_id[$i]);
-					$unit_qty = $this->site->getProductVariantByOptionID($option_id[$i]);
+					$unit_cost      = $this->sales_model->getCurCost($product_id[$i]);
+					$unit_qty       = $this->site->getProductVariantByOptionID($option_id[$i]);
 					if($unit_qty){
-						$cost = ($unit_cost->cost*$unit_qty->qty_unit);
+						$cost               = ($unit_cost->cost*$unit_qty->qty_unit);
+                        $quantity_balance   = ($rec_quantity*$unit_qty->qty_unit);
 					}else{
-						$cost = ($unit_cost->cost);
+						$cost               = $unit_cost->cost;
+                        $quantity_balance   = $rec_quantity;
 					}
 					
 					$deliverie_items[] =  array(
@@ -13619,14 +13621,16 @@ class Sales extends MY_Controller
 							'product_type' 		=> $product_type[$i],
 							'option_id' 		=> $option_id[$i],
 							'quantity' 			=> $rec_quantity,
-							'quantity_balance' 	=> $rec_quantity,
+							'quantity_balance' 	=> $quantity_balance,
 							'warehouse_id' 		=> $warehouse_id[$i]
 						);
 					}
 				}
+
 				if($delivery_status == 'completed') {
 					$this->site->costing($products);
 				}
+
 				$delivery_id = $this->sales_model->add_delivery($delivery, $deliverie_items);
 				
 				if($delivery_id > 0){
@@ -13650,11 +13654,11 @@ class Sales extends MY_Controller
 					if($type=="sale_order" && $pos != 1) {
 						$sale_order_item = $this->sales_model->getSaleOrderItem($sale_id, $product_id);
 						for($i=0;$i<sizeof($sale_order_item);$i++){
-							$unit_qty = $this->site->getProductVariantByOptionID($sale_order_item[$i]->option_id);
-							$qtyReceived = $sale_order_item[$i]->quantity_received;
-							$lastQtyReceived = $qtyReceived + $quantity_received[$i];
-							$qty_received = array('quantity_received' => $lastQtyReceived);							
-							$condition = array('id' => $sale_item_id[$i],'product_id' => $product_id[$i],'product_name' => $product_name[$i], 'product_code' => $product_code[$i],'sale_order_id'=>$sale_id);
+							$unit_qty           = $this->site->getProductVariantByOptionID($sale_order_item[$i]->option_id);
+							$qtyReceived        = $sale_order_item[$i]->quantity_received;
+							$lastQtyReceived    = $qtyReceived + $quantity_received[$i];
+							$qty_received       = array('quantity_received' => $lastQtyReceived);
+							$condition          = array('id' => $sale_item_id[$i],'product_id' => $product_id[$i],'product_name' => $product_name[$i], 'product_code' => $product_code[$i],'sale_order_id'=>$sale_id);
 							if($this->sales_model->updateSaleOrderQtyReceived($qty_received,$condition)){
 								$sale_order_status = true;
 							}
@@ -13740,14 +13744,14 @@ class Sales extends MY_Controller
 						$updateStatus = false;
 						foreach($getAllQty as $qty){
 							if($qty->qty - $qty->qty_received > 0){
-								$status = array('delivery_status' => 'partial', 'sale_status' => 'delivery');
-								$condition = array('id'=>$sale_id);
+								$status     = array('delivery_status' => 'partial', 'sale_status' => 'delivery');
+								$condition  = array('id'=>$sale_id);
 								$this->db->where($condition);
 								$this->db->update('sale_order', $status);
 								$updateStatus = true;
 							}elseif($qty->qty - $qty->qty_received == 0){
-								$status = array('delivery_status' => 'completed', 'sale_status' => 'delivery');
-								$condition = array('id'=>$sale_id);
+								$status     = array('delivery_status' => 'completed', 'sale_status' => 'delivery');
+								$condition  = array('id'=>$sale_id);
 								$this->db->where($condition);
 								$this->db->update('sale_order', $status);
 								$updateStatus = true;   

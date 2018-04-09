@@ -15,11 +15,11 @@
         tax_rates = <?php echo json_encode($tax_rates); ?>;
 		
 	//var $biller = $("#slbiller");
-		$(window).load(function(){
-			<?php if($Admin || $Owner){ ?>
-			billerChange();
-			<?php } ?>
-		});
+    $(window).load(function(){
+        <?php if($Admin || $Owner){ ?>
+        billerChange();
+        <?php } ?>
+    });
 
     $(document).ready(function () {
         <?php if ($inv) { ?>
@@ -202,6 +202,15 @@
             $('#gcModal').appendTo("body").modal('show');
             return false;
         });
+
+        $(document).on('change', '#amount_1', function (e) {
+           var balance = <?= $inv->paid - $inv->refunded ?>;
+           var amount  = $(this).val();
+           if (parseFloat(amount) > parseFloat(balance)) {
+               $(this).val(balance);
+           }
+        });
+
         $('#gccustomer').val(<?=$inv->customer_id?>).select2({
             minimumInputLength: 1,
             data: [],
@@ -234,6 +243,7 @@
                 }
             }
         });
+
         $(document).on('click', '#add_return', function(){
             if($('#bank_account_1').val() == 0){
                 bootbox.alert('<?= lang('bank_account_x_select'); ?>'); 
@@ -294,6 +304,7 @@
             });
             return false;
         });
+
         var old_row_qty;
         $(document).on("focus", '.rquantity', function () {
             old_row_qty = $(this).val();
@@ -315,6 +326,7 @@
             localStorage.setItem('reitems', JSON.stringify(reitems));
             loadItems();
         });
+
 		var old_discount;
         $(document).on("focus", '#sldiscount', function () {
             old_discount = $(this).val() ? $(this).val() : '0';
@@ -328,6 +340,7 @@
             localStorage.setItem('rediscount', new_discount);
             loadItems();
         });
+
 		var old_shipping;
         $(document).on("focus", '#slshipping', function () {
             old_shipping = $(this).val() ? $(this).val() : '0';
@@ -342,12 +355,14 @@
             localStorage.setItem('slshipping', new_shipping);
             loadItems();
         });
+
 		$('#sltax2').on('change', function() {
 			var sltax2 = $(this).val();
 			localStorage.setItem('retax2', sltax2);
             loadItems();
 		});
         var old_surcharge;
+
         $(document).on("focus", '#return_surcharge', function () {
             old_surcharge = $(this).val() ? $(this).val() : '0';
         }).on("change", '#return_surcharge', function () {
@@ -571,11 +586,11 @@
             $('#gtotal').text(formatMoney(gtotal));
             <?php if($inv->payment_status == 'paid') { echo "$('#amount_1').val(formatDecimal(gtotal));"; } ?>
 			<?php if($inv->payment_status == 'partial') { ?>
-					if(gtotal > balance) {
-						$('#amount_1').val(formatDecimal(balance));
-					}else {
-						$('#amount_1').val(formatDecimal(gtotal));
-					}
+                if(gtotal > balance) {
+                    $('#amount_1').val(formatDecimal(balance));
+                }else {
+                    $('#amount_1').val(formatDecimal(gtotal));
+                }
 			<?php } ?>
             if (an > site.settings.bc_fix && site.settings.bc_fix != 0) {
                 $("html, body").animate({scrollTop: $('#reTable').offset().top - 150}, 500);
