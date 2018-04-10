@@ -13690,9 +13690,9 @@ class Sales extends MY_Controller
 						if($updateStatus == true) {
 							// update stock here....
 							foreach($deliverie_items as $delivery_item){
-								$delivery_quantity = $delivery_item['quantity_received'];
-								$getproduct = $this->site->getProductByID($delivery_item['product_id']);
-								$getsaleitem = $this->sales_model->getSaleItemByID($delivery_item['item_id']);
+								$delivery_quantity  = $delivery_item['quantity_received'];
+								$getproduct         = $this->site->getProductByID($delivery_item['product_id']);
+								$getsaleitem        = $this->sales_model->getSaleItemByID($delivery_item['item_id']);
 								
 								$stock_info[] = array(
 									'product_id'        => $delivery_item['product_id'],
@@ -13784,6 +13784,7 @@ class Sales extends MY_Controller
 									'net_unit_price' 	=> $getsaleitem->net_unit_price,
 									'unit_price' 		=> $getsaleitem->unit_price,
 									'quantity' 			=> $delivery_quantity,
+									'quantity_balance'	=> $delivery_quantity,
 									'warehouse_id' 		=> $delivery_item['warehouse_id'],
 									'item_tax' 			=> $getsaleitem->item_tax,
 									'tax_rate_id' 		=> $getsaleitem->tax_rate_id,

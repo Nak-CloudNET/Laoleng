@@ -2811,8 +2811,7 @@ class Site extends CI_Model
         if (!isset($item['option_id']) || $item['option_id'] == 'null') {
             $item['option_id'] = NULL;
         }
-		
-		
+
         if ($this->Settings->accounting_method != 2 && !$this->Settings->overselling) {
 			
 			if ($this->site->getProductByID($item['product_id'])) {
