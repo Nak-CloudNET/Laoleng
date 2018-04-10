@@ -19,6 +19,7 @@
         <?php if($Admin || $Owner){ ?>
         billerChange();
         <?php } ?>
+        calculationShipping();
     });
 
     $(document).ready(function () {
@@ -322,6 +323,7 @@
                 $(this).val(old_row_qty);
                 return false;
             }
+            calculationShipping();
             reitems[item_id].row.qty = new_qty;
             localStorage.setItem('reitems', JSON.stringify(reitems));
             loadItems();
@@ -495,11 +497,11 @@
 					
 					tr_html += '<td><input name="sale_item_id[]" type="hidden" class="rsiid" value="' + sale_item_id + '"><input name="product_id[]" type="hidden" class="rid" value="' + product_id + '"><input name="product_type[]" type="hidden" class="rtype" value="' + item_type + '"><input name="product_code[]" type="hidden" class="rcode" value="' + item_code + '"><input name="product_name[]" type="hidden" class="rname" value="' + item_name + '"><input name="product_option[]" type="hidden" class="roption" value="' + item_option + '"><input name="product_note[]" type="hidden" class="rnote" value="' + pn + '"><span class="sname" id="name_' + row_no + '">' + item_name + ''+(sel_opt != '' ? ' ('+sel_opt+')' : '')+'</span></td>';
 				}
-				
-				
+
+
 				
 				tr_html += '<td class="text-right"><input class="form-control input-sm text-right rprice" name="net_price[]" type="hidden" id="price_' + row_no + '" value="' + unit_price + '"><input class="ruprice" name="unit_price[]" type="hidden" value="' + unit_price + '"><input class="realuprice" name="real_unit_price[]" type="hidden" value="' + item.row.real_unit_price + '"><span class="text-right sprice" id="sprice_' + row_no + '">' + formatMoney(unit_price) + '</span></td>';
-                tr_html += '<td><input class="form-control text-center rquantity" name="quantity[]" type="text" value="' + formatDecimal(item_qty) + '" data-id="' + row_no + '" data-item="' + item_id + '" id="quantity_' + row_no + '" onClick="this.select();"></td>';
+                tr_html += '<td><input class="form-control text-center rquantity" name="quantity[]" type="text" value="' + formatDecimal(item_qty) + '" data-id="' + row_no + '" data-item="' + item_id + '" id="quantity_' + row_no + '" onClick="this.select();"><input type="hidden" value="'+item.row.oqty+'" class="real_qty"/></td>';
                 if (site.settings.product_serial == 1) {
                     tr_html += '<td class="text-right"><input class="form-control input-sm rserial" name="serial[]" type="text" id="serial_' + row_no + '" value="' + item_serial + '"></td>';
                 }
@@ -596,6 +598,7 @@
                 $("html, body").animate({scrollTop: $('#reTable').offset().top - 150}, 500);
                 $(window).scrollTop($(window).scrollTop() + 1);
             }
+            $('#slshipping').css('pointer-events', 'none');
             if (count > 1) {
                 $('#add_item').removeAttr('required');
                 $('form[data-toggle="validator"]').bootstrapValidator('removeField', 'add_item');
@@ -626,6 +629,22 @@
                 //$("#slwarehouse").select2("val", "<?=$Settings->default_warehouse;?>");
             }
         });
+    }
+
+    function calculationShipping(){
+        var total_oqty = 0;
+        var total_nqty = 0;
+        var shiping    = '<?= $inv->shipping ?>';
+        $(".real_qty").each(function(){
+            if($(this).val() != "")
+                total_oqty += parseInt($(this).val());
+        });
+        $(".rquantity").each(function(){
+            if($(this).val() != "")
+                total_nqty += parseInt($(this).val());
+        });
+        var nshipping = parseFloat((shiping * total_nqty)/total_oqty);
+        $('#slshipping').val(formatMoney(nshipping)).trigger('change');
     }
 	
 	$(document).ready(function() {

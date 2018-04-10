@@ -5826,24 +5826,24 @@ class Sales extends MY_Controller
                         $row->quantity += $pi->quantity_balance;
                     }
                 }
-                $row->id = $item->product_id;
-                $row->sale_item_id = $item->id;
-                $row->code = $item->product_code;
-                $row->name = $item->product_name;
-                $row->type = $item->product_type;
-                $row->qty = $item->bqty;
-                $row->oqty = $item->quantity;
-                $row->discount = $item->discount ? $item->discount : '0';
+                $row->id            = $item->product_id;
+                $row->sale_item_id  = $item->id;
+                $row->code          = $item->product_code;
+                $row->name          = $item->product_name;
+                $row->type          = $item->product_type;
+                $row->qty           = $item->bqty;
+                $row->oqty          = $item->quantity;
+                $row->discount      = $item->discount ? $item->discount : '0';
                 $row->item_discount = $item->item_discount ? $item->item_discount : '0';
-                $row->price = $this->erp->formatDecimal($item->net_unit_price+$this->erp->formatDecimal($item->item_discount/$item->bqty));
-                $row->unit_price = $row->tax_method ? $item->unit_price+$this->erp->formatDecimal($item->item_discount/$item->bqty)+$this->erp->formatDecimal($item->item_tax/$item->bqty) : $item->unit_price+($item->item_discount/$item->bqty);
+                $row->price         = $this->erp->formatDecimal($item->net_unit_price+$this->erp->formatDecimal($item->item_discount/$item->bqty));
+                $row->unit_price    = $row->tax_method ? $item->unit_price+$this->erp->formatDecimal($item->item_discount/$item->bqty)+$this->erp->formatDecimal($item->item_tax/$item->bqty) : $item->unit_price+($item->item_discount/$item->bqty);
                 $row->real_unit_price = $item->real_unit_price;
-				$row->cost = $item->unit_cost;
-                $row->tax_rate = $item->tax_rate_id;
-                $row->serial = $item->serial_no;
-                $row->option = $item->option_id;
-                $options = $this->sales_model->getProductOptions($row->id, $item->warehouse_id, TRUE);
-                $ri = $this->Settings->item_addition ? $row->id : $c;
+				$row->cost          = $item->unit_cost;
+                $row->tax_rate      = $item->tax_rate_id;
+                $row->serial        = $item->serial_no;
+                $row->option        = $item->option_id;
+                $options            = $this->sales_model->getProductOptions($row->id, $item->warehouse_id, TRUE);
+                $ri                 = $this->Settings->item_addition ? $row->id : $c;
                 if ($row->tax_rate) {
                     $tax_rate = $this->site->getTaxRateByID($row->tax_rate);
                     $pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'tax_rate' => $tax_rate, 'options' => $options);
