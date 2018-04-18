@@ -62,10 +62,10 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-    'hostname' => '192.168.1.16',
+	'hostname' => 'localhost',
 	'username' => 'root',
 	'password' => '',
-    'database' => 'iclouderp_v3_5_laoleng',
+	'database' => 'iclouderp_3_5_lao_org',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => 'erp_',
 	'pconnect' => FALSE,
