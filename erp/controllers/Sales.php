@@ -687,17 +687,16 @@ class Sales extends MY_Controller
 	function customer_balance()
 	{
 		//$this->erp->checkPermissions('customer',NULL,'sale_report');
-        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
-		$this->data['customers'] = $this->site->getCustomerSale();
+        $this->data['error']            = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+		$this->data['customers']        = $this->site->getCustomerSale();
         if ($this->Owner || $this->Admin) {
-            $this->data['warehouses'] = $this->site->getAllWarehouses();
+            $this->data['warehouses']   = $this->site->getAllWarehouses();
             $this->data['warehouse_id'] = isset($warehouse_id);
-            $this->data['warehouse'] = isset($warehouse_id) ? $this->site->getWarehouseByID($warehouse_id) : NULL;
+            $this->data['warehouse']    = isset($warehouse_id) ? $this->site->getWarehouseByID($warehouse_id) : NULL;
         } else {
-            $this->data['warehouses'] = NULL;
+            $this->data['warehouses']   = NULL;
             $this->data['warehouse_id'] = $this->session->userdata('warehouse_id');
-
-            $this->data['warehouse'] = $this->session->userdata('warehouse_id') ? $this->site->getWarehouseByID($this->session->userdata('warehouse_id')) : NULL;
+            $this->data['warehouse']    = $this->session->userdata('warehouse_id') ? $this->site->getWarehouseByID($this->session->userdata('warehouse_id')) : NULL;
         }
         $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => site_url('sales'), 'page' => lang('sales')), array('link' => '#', 'page' => lang('customer_balance')));
         $meta = array('page_title' => lang('customer_balance'), 'bc' => $bc);
@@ -918,7 +917,7 @@ class Sales extends MY_Controller
         } else {
             $start_date = NULL;
         }
-
+        $where_date = '';
         if ($this->input->get('end_date')) {
             $end_date = $this->input->get('end_date');
         } else {
@@ -926,7 +925,9 @@ class Sales extends MY_Controller
         }
         if ($start_date) {
             $start_date = $this->erp->fld($start_date);
-            $end_date = $this->erp->fld($end_date);
+            $end_date   = $this->erp->fld($end_date);
+            $where_date = 'AND `erp_sales`.`date` BETWEEN "2018-03-01 00:00:00"
+AND "2018-03-31 23:59:00"';
         }
         $t_sale = "(
                     SELECT
@@ -943,6 +944,9 @@ class Sales extends MY_Controller
                             erp_sales.return_id IS NULL
                             OR erp_sales.grand_total <> erp_return_sales.grand_total
                         )
+                        
+                        ".$where_date."
+                        
                     GROUP BY
 		                erp_sales.customer_id
                     ) AS erp_amount_due_sale";
@@ -983,6 +987,7 @@ class Sales extends MY_Controller
 				WHERE
 					erp_sales.payment_status <> 'paid'
 				AND erp_sales.sale_status <> 'ordered'
+				".$where_date."
 				GROUP BY erp_sales.customer_id
 				) AS erp_pmt";
 
@@ -1002,6 +1007,7 @@ class Sales extends MY_Controller
 						erp_sales.return_id IS NULL
 						OR erp_sales.grand_total <> erp_return_sales.grand_total
 					)
+					".$where_date."
 				GROUP BY
 					erp_return_sales.customer_id
 				) AS erp_total_return_sale";
@@ -1009,9 +1015,9 @@ class Sales extends MY_Controller
         $this->load->library('datatables');
         $this->datatables->select($this->db->dbprefix('companies') . ".id as idd, companies.company, companies.name, 
 					companies.phone, companies.email, 
-					amount_due_sale.amount_sale as total, 
-					amount_due_sale.sale_grand_total as total_amount, 
-					total_return_sale.return_amount as return_sale, 
+					COALESCE(erp_amount_due_sale.amount_sale, 0) as total, 
+					COALESCE(erp_amount_due_sale.sale_grand_total, 0) as total_amount, 
+					COALESCE(erp_total_return_sale.return_amount, 0) as return_sale, 
 					COALESCE(erp_pmt.payment, 0) AS total_payment,
 					COALESCE(erp_pmt.deposit, 0) AS total_deposit,
 					COALESCE(erp_pmt.discount, 0) AS total_discount,
@@ -1024,6 +1030,7 @@ class Sales extends MY_Controller
             ->join($return, 'total_return_sale.customer_id = sales.customer_id', 'left')
             ->where(array('companies.group_name' => 'customer', 'sales.payment_status !=' => 'paid'))
             ->where(array('sales.sale_status !=' => 'ordered'))
+            ->where('amount_due_sale.sale_grand_total > ', 0)
             //->having('total_amount != return_sale')
             ->group_by('sales.customer_id');
         if ($customer) {
@@ -1032,9 +1039,7 @@ class Sales extends MY_Controller
         if($this->session->userdata('biller_id') ) {
             $this->datatables->where_in('sales.biller_id', json_decode($this->session->userdata('biller_id') ));
         }
-        if ($start_date) {
-            $this->datatables->where($this->db->dbprefix('sales').'.date BETWEEN "' . $start_date . ' 00:00:00" and "' . $end_date . ' 23:59:00"');
-        }
+
         $this->datatables->add_column("Actions", "<div class='text-center'><a class=\"tip\" title='" . lang("view_balance") . "' href='" . site_url('sales/view_customer_balance/$1') . "'><span class='label label-primary'>" . lang("view_balance") . "</span></a></div>", "idd");
         echo $this->datatables->generate();
     }
