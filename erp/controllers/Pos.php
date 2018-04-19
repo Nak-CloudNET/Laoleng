@@ -1885,7 +1885,8 @@ class Pos extends MY_Controller
 				$row->price_id = 0;
 			}
 			
-            $row->real_unit_price = $row->price; 			
+            $row->real_unit_price = $row->price; 
+		
 			$row->piece	  = 0;
 			$row->wpiece  = 0;
 			$row->digital_id	  = 0;
@@ -1902,8 +1903,8 @@ class Pos extends MY_Controller
                 $pr = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->code, 'label' => $row->name . " (" . $row->code . ")",'image' => $row->image,'cost' => $row->cost,'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => $tax_rate, 'options' => $options, 'expdates'=>$expdates, 'item_price' => $row->price,'orderqty'=>isset($orderqty->quantity), 'group_prices' => $group_prices, 'all_group_prices' => $all_group_prices, 'makeup_cost'=>$customer_group->makeup_cost, 'customer_percent' => $customer_group->percent,'makeup_cost_percent'=>$percent->percent);
             }else {
                 $pr = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->code, 'label' => $row->name . " (" . $row->code . ")",'image' => $row->image, 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options, 'expdates'=>$expdates, 'item_price' => $row->price,'orderqty'=>$orderqty->quantity, 'group_prices' => $group_prices, 'all_group_prices' => $all_group_prices, 'makeup_cost'=>$customer_group->makeup_cost, 'customer_percent' => $customer_group->percent,'makeup_cost_percent'=>$percent->percent);
-            } 	
-			$this->erp->print_arrays($pr);			
+            } 
+			
             echo json_encode($pr);
         } else {
 			

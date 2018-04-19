@@ -9794,8 +9794,8 @@ AND "'.$end_date.' 23:59:00"';
 				}
 				
 				if ($opt->price != 0) {
-					
-					if($customer_group->makeup_cost == 1){
+					if($customer_group->makeup_cost == 1 && $percent!=""){
+						
 						if($setting->attributes==1)
 						{
 							if(isset($percent->percent)) {
@@ -9805,15 +9805,15 @@ AND "'.$end_date.' 23:59:00"';
 							}
 						}
 					}else{
+						
 						if($setting->attributes==1)
 						{
 							$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
 						}
 					}
+				} else { 
 					
-                } else {
-					
-					if($customer_group->makeup_cost == 1){
+					if($customer_group->makeup_cost == 1 && $percent!=""){
 						if($setting->attributes==1)
 						{
 							if(isset($percent->percent)) {
@@ -9823,12 +9823,32 @@ AND "'.$end_date.' 23:59:00"';
 							}
 						}
 					}else{
+						
 						if($setting->attributes==1)
 						{
 							$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
 						}
 					}
-                }
+				}
+				
+				if($group_prices)
+				{
+				   $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+				   $row->price_id = $group_prices[0]->id ? $group_prices[0]->id : 0;
+				   $row->price = $group_prices[0]->price ? $group_prices[0]->price : 0;
+				   
+				   if($customer_group->makeup_cost == 1){
+						//$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
+						$row->price = $row->cost + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+
+                   }else{
+                       //$row->price = $group_prices[0]->price;
+						$row->price = $group_prices[0]->price + (($group_prices[0]->price * $customer_group->percent) / 100);
+					}
+				}else{
+					$row->price_id = 0;
+				}
+				
                 $row->real_unit_price = $row->price;
 				$row->is_sale_order   = 0;
 				$row->item_load		  = 0;
@@ -9849,6 +9869,7 @@ AND "'.$end_date.' 23:59:00"';
                     $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")" . " (" . $row->price . ")" , 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options,'expdates'=>$expdates,'cost' => $row->cost,'group_prices'=>$group_prices, 'all_group_price' => $all_group_prices, 'orderqty'=>$orderqty, 'makeup_cost'=>$customer_group->makeup_cost, 'customer_percent' => $customer_group->percent,'currency'=>$currency,'us_currency'=>$us_currency,'makeup_cost_percent'=>$percent->percent);
                 }
             }
+			
 			echo json_encode($pr);
         } else {
             echo json_encode(array(array('id' => 0, 'label' => lang('no_match_found'), 'value' => $term)));
@@ -10149,20 +10170,42 @@ AND "'.$end_date.' 23:59:00"';
 				}
 				
                 if ($opt->price != 0) {
-					if($customer_group->makeup_cost == 1){
-						//$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
-						$row->price = $row->cost + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+					if($customer_group->makeup_cost == 1 && $percent!=""){
+						
+						if($setting->attributes==1)
+						{
+							if(isset($percent->percent)) {
+								$row->price = ($row->cost*$opt->qty_unit)  + ((($row->cost*$opt->qty_unit)  * (isset($percent->percent)?$percent->percent:0)) / 100);
+							}else {
+								$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+							}
+						}
 					}else{
-						$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+						
+						if($setting->attributes==1)
+						{
+							$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+						}
 					}
-                } else {
-					if($customer_group->makeup_cost == 1){
-						//$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
-						$row->price = $row->cost + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+				} else { 
+					
+					if($customer_group->makeup_cost == 1 && $percent!=""){
+						if($setting->attributes==1)
+						{
+							if(isset($percent->percent)) {
+								$row->price = $row->cost  + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+							}else {
+								$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+							}
+						}
 					}else{
-						$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+						
+						if($setting->attributes==1)
+						{
+							$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+						}
 					}
-                }
+				}
 				
 				if($group_prices)
 				{
@@ -10182,6 +10225,7 @@ AND "'.$end_date.' 23:59:00"';
 					$row->price_id = 0;
 				}
 				
+				
                 $row->real_unit_price = $row->price;
 				$row->w_piece		  = $row->cf1;
 				$row->piece			  = 0;
@@ -10200,6 +10244,7 @@ AND "'.$end_date.' 23:59:00"';
                     $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options, 'expdates'=>$expdates, 'group_prices'=>$group_prices, 'all_group_price' => $all_group_prices);
                 }
             }
+			
             echo json_encode($pr);
         } else {
             echo json_encode(array(array('id' => 0, 'label' => lang('no_match_found'), 'value' => $term)));
