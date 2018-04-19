@@ -926,8 +926,8 @@ class Sales extends MY_Controller
         if ($start_date) {
             $start_date = $this->erp->fld($start_date);
             $end_date   = $this->erp->fld($end_date);
-            $where_date = 'AND `erp_sales`.`date` BETWEEN "2018-03-01 00:00:00"
-AND "2018-03-31 23:59:00"';
+            $where_date = 'AND `erp_sales`.`date` BETWEEN "'.$start_date.' 00:00:00"
+AND "'.$end_date.' 23:59:00"';
         }
         $t_sale = "(
                     SELECT
@@ -1030,7 +1030,7 @@ AND "2018-03-31 23:59:00"';
             ->join($return, 'total_return_sale.customer_id = sales.customer_id', 'left')
             ->where(array('companies.group_name' => 'customer', 'sales.payment_status !=' => 'paid'))
             ->where(array('sales.sale_status !=' => 'ordered'))
-            ->where('amount_due_sale.sale_grand_total > ', 0)
+            ->where('amount_due_sale.amount_sale > ', 0)
             //->having('total_amount != return_sale')
             ->group_by('sales.customer_id');
         if ($customer) {
@@ -9876,7 +9876,7 @@ AND "2018-03-31 23:59:00"';
             $option = '';
         }
         $customer 		= $this->site->getCompanyByID($customer_id);
-        $customer_group = $this->site->getCustomerGroupByID($customer->customer_group_id);
+		$customer_group = $this->site->getCustomerGroupByID($customer->customer_group_id);
 		$user_setting 	= $this->site->getUserSetting($this->session->userdata('user_id'));
 		$rows 			= $this->sales_model->getProductNames($sr, $warehouse_id, $user_setting->sales_standard, $user_setting->sales_combo, $user_setting->sales_digital, $user_setting->sales_service, $user_setting->sales_category);
 		$expiry_status = 0;
@@ -9895,6 +9895,8 @@ AND "2018-03-31 23:59:00"';
 				$options = $this->sales_model->getProductOptions($row->id, $warehouse_id);
 				$group_prices = $this->sales_model->getProductPriceGroupId($row->id, $customer->price_group_id);
 				$all_group_prices = $this->sales_model->getProductPriceGroup($row->id);
+				//$this->erp->print_arrays($group_prices,$all_group_prices);
+				
 				if($expiry_status == 1) {
 					$expdates = $this->sales_model->getProductExpireDate($row->id, $warehouse_id);
 				}else{
@@ -9967,6 +9969,7 @@ AND "2018-03-31 23:59:00"';
 				
 				if ($opt->price != 0) {
 					if($customer_group->makeup_cost == 1 && $percent!=""){
+						
 						if($setting->attributes==1)
 						{
 							if(isset($percent->percent)) {
@@ -9976,22 +9979,25 @@ AND "2018-03-31 23:59:00"';
 							}
 						}
 					}else{
+						
 						if($setting->attributes==1)
 						{
 							$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
 						}
 					}
 				} else { 
+					
 					if($customer_group->makeup_cost == 1 && $percent!=""){
 						if($setting->attributes==1)
 						{
 							if(isset($percent->percent)) {
 								$row->price = $row->cost  + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
-							} else {
+							}else {
 								$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
 							}
 						}
 					}else{
+						
 						if($setting->attributes==1)
 						{
 							$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
@@ -10002,7 +10008,21 @@ AND "2018-03-31 23:59:00"';
 				if($group_prices)
 				{
 				   $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+				   $row->price_id = $group_prices[0]->id ? $group_prices[0]->id : 0;
+				   $row->price = $group_prices[0]->price ? $group_prices[0]->price : 0;
+				   
+				   if($customer_group->makeup_cost == 1){
+						//$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
+						$row->price = $row->cost + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+
+                   }else{
+                       //$row->price = $group_prices[0]->price;
+						$row->price = $group_prices[0]->price + (($group_prices[0]->price * $customer_group->percent) / 100);
+					}
+				}else{
+					$row->price_id = 0;
 				}
+                
 				
 				$row->piece			  = 0;
 				$row->digital_code	  = "";
@@ -10028,6 +10048,7 @@ AND "2018-03-31 23:59:00"';
 				}
 		
 			}
+			
 			echo json_encode($pr);
         } else {
             echo json_encode(array(array('id' => 0, 'label' => lang('no_match_found'), 'value' => $term)));
@@ -10142,6 +10163,25 @@ AND "2018-03-31 23:59:00"';
 						$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
 					}
                 }
+				
+				if($group_prices)
+				{
+				   $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+				   $row->price_id = $group_prices[0]->id ? $group_prices[0]->id : 0;
+				   $row->price = $group_prices[0]->price ? $group_prices[0]->price : 0;
+				   
+				   if($customer_group->makeup_cost == 1){
+						//$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
+						$row->price = $row->cost + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+
+                   }else{
+                       //$row->price = $group_prices[0]->price;
+						$row->price = $group_prices[0]->price + (($group_prices[0]->price * $customer_group->percent) / 100);
+					}
+				}else{
+					$row->price_id = 0;
+				}
+				
                 $row->real_unit_price = $row->price;
 				$row->w_piece		  = $row->cf1;
 				$row->piece			  = 0;

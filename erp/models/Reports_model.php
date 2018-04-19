@@ -2790,7 +2790,7 @@ ORDER BY
         }
         return false;
     }
-	public function getCustomerByID($id=null, $wh=null) {
+	public function getCustomerByID($id=null, $wh=null, $where=null) {
         $t_sale = "(
                     SELECT
                         erp_sales.customer_id,
@@ -2806,6 +2806,9 @@ ORDER BY
                             erp_sales.return_id IS NULL
                             OR erp_sales.grand_total <> erp_return_sales.grand_total
                         )
+                        
+                        ".$where."
+                        
                     GROUP BY
 		                erp_sales.customer_id
                     ) AS erp_amount_due_sale";
@@ -2847,6 +2850,7 @@ ORDER BY
 				WHERE
 					erp_sales.payment_status <> 'paid'
 				AND erp_sales.sale_status <> 'ordered'
+				".$where."
 				GROUP BY erp_sales.customer_id
 				) AS erp_pmt";
 
@@ -2866,6 +2870,7 @@ ORDER BY
 						erp_sales.return_id IS NULL
 						OR erp_sales.grand_total <> erp_return_sales.grand_total
 					)
+					".$where."
 				GROUP BY
 					erp_return_sales.customer_id
 				) AS erp_total_return_sale";

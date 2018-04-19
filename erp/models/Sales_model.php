@@ -5988,6 +5988,7 @@ class Sales_model extends CI_Model
 		return false;
 
 	}
+
 	public function getQuantityBalanceBySaleID($sale_id = NULL) {
 		$this->db->select('SUM(erp_sale_items.quantity - erp_return_items.quantity) as quantity');
 		$this->db->join('erp_return_items', 'erp_sale_items.sale_id = erp_return_items.sale_id', 'LEFT');
@@ -5998,6 +5999,7 @@ class Sales_model extends CI_Model
 		}
 		return false;
 	}
+
 	public function getAllInvoiceReItems($sale_id)
     {
         $this->db->select("sale_items.*,

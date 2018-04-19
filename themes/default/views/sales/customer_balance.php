@@ -2,16 +2,16 @@
 	$v = "";
 	if ($this->input->post('submit_sale_report')) {
 		if ($this->input->post('customer')) {
-				$v .= "&customer=" . $this->input->post('customer');
+		    $v .= "&customer=" . $this->input->post('customer');
 		}
 		if ($this->input->post('serial')) {
-				$v .= "&serial=" . $this->input->post('serial');
+		    $v .= "&serial=" . $this->input->post('serial');
 		}
 		if ($this->input->post('start_date')) {
-				$v .= "&start_date=" . $this->input->post('start_date');
+		    $v .= "&start_date=" . $this->input->post('start_date');
 		}
 		if ($this->input->post('end_date')) {
-				$v .= "&end_date=" . $this->input->post('end_date');
+		    $v .= "&end_date=" . $this->input->post('end_date');
 		}	
 	}
 	$warehouse_id = str_replace(',', '-', $warehouse_id);
@@ -80,7 +80,7 @@
 	});
 </script>
 <?php 
-   echo form_open('reports/customers_actions/'.($warehouse_id ? $warehouse_id : ''), 'id="action-form"');
+   echo form_open('reports/customers_actions/'.($warehouse_id ? $warehouse_id : '').'/?v=1'.$v, 'id="action-form"');
 ?>
 <div class="box">
     <div class="box-header">

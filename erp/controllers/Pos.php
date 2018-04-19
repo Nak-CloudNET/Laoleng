@@ -1757,6 +1757,7 @@ class Pos extends MY_Controller
 
         $customer = $this->site->getCompanyByID($customer_id);
         $customer_group = $this->site->getCustomerGroupByID($customer->customer_group_id);
+		
         $row = $this->pos_model->getWHProduct($code, $warehouse_id);
 		$orderqty = $this->pos_model->getQtyOrder($row->product_id);
 		$w_piece = $this->sales_model->getProductVariantByOptionID($row->id);
@@ -1803,41 +1804,9 @@ class Pos extends MY_Controller
 			}
 			
 			$setting = $this->sales_model->getSettings();
-			
-           if ($opt->price != 0) {
-				if($customer_group->makeup_cost == 1){
-					if($setting->attributes==1)
-					{
-						$row->price = ($row->cost*$opt->qty_unit)  + ((($row->cost*$opt->qty_unit)  * (isset($percent->percent)?$percent->percent:0)) / 100);
-					}
-				}else{
-					if($setting->attributes==1)
-					{
-						$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
-					}
-				}
-			} else { 
-				if($customer_group->makeup_cost == 1){
-					if($setting->attributes==1)
-					{
-						$row->price = $row->cost  + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
-					}
-				
-				}else{
-					if($setting->attributes==1)
-					{
-						$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
-					}
-					
-				}
-			}
-			
-			
-			
             $row->quantity = 0;
             $pis = $this->pos_model->getPurchasedItems($row->id, $warehouse_id, $row->option);
-			
-			$group_prices = $this->sales_model->getProductPriceGroupId($row->id, $customer->price_group_id);
+			$group_prices = $this->sales_model->getProductPriceGroup($row->id, $customer->price_group_id);
 			$all_group_prices = $this->sales_model->getProductPriceGroup($row->id);
 			
 			$row->price_id = 0;
@@ -1861,6 +1830,61 @@ class Pos extends MY_Controller
                     }
                 }
             }
+			
+			if ($opt->price != 0) {
+				if($customer_group->makeup_cost == 1 && $percent!=""){
+					if($setting->attributes==1)
+					{
+						if(isset($percent->percent)) {
+							$row->price = ($row->cost*$opt->qty_unit)  + ((($row->cost*$opt->qty_unit)  * (isset($percent->percent)?$percent->percent:0)) / 100);
+						}else {
+							$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+						}
+					}
+				}else{
+					if($setting->attributes==1)
+					{
+						$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+					}
+				}
+			} else { 
+				if($customer_group->makeup_cost == 1 && $percent!=""){
+					if($setting->attributes==1)
+					{
+						if(isset($percent->percent)) {
+							$row->price = $row->cost  + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+						}else {
+							$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+						}
+					}
+				}else{
+					if($setting->attributes==1)
+					{
+						$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+					}
+				}
+			}
+			
+			
+			if($group_prices)
+			{
+			   $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+			   $row->price_id = $group_prices[0]->id ? $group_prices[0]->id : 0;
+			   $row->price = $group_prices[0]->price ? $group_prices[0]->price : 0;
+			   
+			   if($customer_group->makeup_cost == 1){
+					//$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
+					$row->price = $row->cost + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+
+			   }else{
+				   //$row->price = $group_prices[0]->price;
+					$row->price = $group_prices[0]->price + (($group_prices[0]->price * $customer_group->percent) / 100);
+					
+				}
+			}else{
+				$row->price_id = 0;
+			}
+			
             $row->real_unit_price = $row->price; 			
 			$row->piece	  = 0;
 			$row->wpiece  = 0;
@@ -1878,7 +1902,8 @@ class Pos extends MY_Controller
                 $pr = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->code, 'label' => $row->name . " (" . $row->code . ")",'image' => $row->image,'cost' => $row->cost,'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => $tax_rate, 'options' => $options, 'expdates'=>$expdates, 'item_price' => $row->price,'orderqty'=>isset($orderqty->quantity), 'group_prices' => $group_prices, 'all_group_prices' => $all_group_prices, 'makeup_cost'=>$customer_group->makeup_cost, 'customer_percent' => $customer_group->percent,'makeup_cost_percent'=>$percent->percent);
             }else {
                 $pr = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->code, 'label' => $row->name . " (" . $row->code . ")",'image' => $row->image, 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options, 'expdates'=>$expdates, 'item_price' => $row->price,'orderqty'=>$orderqty->quantity, 'group_prices' => $group_prices, 'all_group_prices' => $all_group_prices, 'makeup_cost'=>$customer_group->makeup_cost, 'customer_percent' => $customer_group->percent,'makeup_cost_percent'=>$percent->percent);
-            } 			
+            } 	
+			$this->erp->print_arrays($pr);			
             echo json_encode($pr);
         } else {
 			

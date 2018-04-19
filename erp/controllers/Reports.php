@@ -14738,7 +14738,6 @@ class Reports extends MY_Controller
         $this->form_validation->set_rules('form_action', lang("form_action"), 'required');
 
         if ($this->form_validation->run() == true) {
-
             if (!empty($_POST['val'])) {
                 if ($this->input->post('form_action') == 'delete') {
                     foreach ($_POST['val'] as $id) {
@@ -14749,6 +14748,14 @@ class Reports extends MY_Controller
                 }
 
                 if ($this->input->post('form_action') == 'export_excel' || $this->input->post('form_action') == 'export_pdf') {
+                    $where_date = '';
+                    $start_date = $this->erp->fld($_GET['start_date']);
+                    $end_date   = $this->erp->fld($_GET['end_date']);
+                    if ($_GET['start_date']) {
+                        $where_date = 'AND `erp_sales`.`date` BETWEEN "'.$start_date.' 00:00:00"
+AND "'.$end_date.' 23:59:00"';
+                    }
+
                     if($this->Owner || $this->Admin){
                         $this->load->library('excel');
                         $this->excel->setActiveSheetIndex(0);
@@ -14768,7 +14775,7 @@ class Reports extends MY_Controller
                         $row = 2;
                         $sum_sale = $sum_amount = $sum_paid = $sum_balance = $sum_return = $sum_deposit = $sum_discount = 0;
                         foreach ($_POST['val'] as $id) {
-                            $sc = $this->reports_model->getCustomerByID($id);
+                            $sc = $this->reports_model->getCustomerByID($id, null, $where_date);
                             //$this->erp->print_arrays($sc);
                             $sum_sale       += $sc->total;
                             $sum_amount     += $sc->total_amount;
@@ -14819,7 +14826,7 @@ class Reports extends MY_Controller
                         $row = 2;
                         $sum_sale = $sum_amount = $sum_paid = $sum_balance = $sum_return = $sum_deposit = $sum_discount = 0;
                         foreach ($_POST['val'] as $id) {
-                            $sc = $this->reports_model->getCustomerByID($id,$wh);
+                            $sc = $this->reports_model->getCustomerByID($id, $wh, $where_date);
                             //$this->erp->print_arrays($sc);
                             $sum_sale       += $sc->total;
                             $sum_amount     += $sc->total_amount;
