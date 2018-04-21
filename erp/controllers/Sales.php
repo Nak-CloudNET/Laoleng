@@ -1602,7 +1602,7 @@ AND "'.$end_date.' 23:59:00"';
 	function getSales_DuePayment($warehouse_id = NULL, $dt = NULL)
     {
         $this->erp->checkPermissions('index');
-		
+
 		if ($this->input->get('customer')) {
             $customer = $this->input->get('customer');
         } else {
@@ -1702,8 +1702,7 @@ AND "'.$end_date.' 23:59:00"';
 						COALESCE( (SELECT SUM(IF((erp_payments.paid_by != 'deposit' AND ISNULL(erp_payments.return_id)), erp_payments.amount, IF(NOT ISNULL(erp_payments.return_id), ((-1)*erp_payments.amount), 0))) FROM erp_payments WHERE erp_payments.sale_id = erp_sales.id),0) as paid, 
 						COALESCE((SELECT SUM(IF(erp_payments.paid_by = 'deposit', erp_payments.amount, 0)) FROM erp_payments WHERE erp_payments.sale_id = erp_sales.id), 0) as deposit, 
 						COALESCE((SELECT SUM(COALESCE(erp_payments.discount, 0)) FROM erp_payments WHERE erp_payments.sale_id = erp_sales.id), 0) as discount, 
-						(COALESCE(erp_sales.grand_total, 0) - COALESCE((SELECT SUM(erp_return_sales.grand_total) FROM erp_return_sales WHERE erp_return_sales.sale_id = erp_sales.id), 0) - COALESCE((SELECT SUM(IF((erp_payments.paid_by != 'deposit' AND ISNULL(erp_payments.return_id)), erp_payments.amount, IF(NOT ISNULL(erp_payments.return_id), ((-1)*erp_payments.amount), 0))) FROM erp_payments WHERE erp_payments.sale_id = erp_sales.id),0) - COALESCE((SELECT SUM(IF(erp_payments.paid_by = 'deposit', erp_payments.amount, 0)) FROM erp_payments WHERE erp_payments.sale_id = erp_sales.id), 0) - COALESCE((SELECT SUM(COALESCE(erp_payments.discount, 0)) FROM erp_payments WHERE erp_payments.sale_id = erp_sales.id), 0)) as balance, 
-						payment_status")
+						(COALESCE(erp_sales.grand_total, 0) - COALESCE((SELECT SUM(erp_return_sales.grand_total) FROM erp_return_sales WHERE erp_return_sales.sale_id = erp_sales.id), 0) - COALESCE((SELECT SUM(IF((erp_payments.paid_by != 'deposit' AND ISNULL(erp_payments.return_id)), erp_payments.amount, IF(NOT ISNULL(erp_payments.return_id), ((-1)*erp_payments.amount), 0))) FROM erp_payments WHERE erp_payments.sale_id = erp_sales.id),0) - COALESCE((SELECT SUM(IF(erp_payments.paid_by = 'deposit', erp_payments.amount, 0)) FROM erp_payments WHERE erp_payments.sale_id = erp_sales.id), 0) - COALESCE((SELECT SUM(COALESCE(erp_payments.discount, 0)) FROM erp_payments WHERE erp_payments.sale_id = erp_sales.id), 0)) as balance, payment_status")
 			->from('sales')
             ->join('companies', 'sales.customer_id = companies.id', 'left')
 			->join('payments', 'payments.sale_id = sales.id', 'left')
@@ -1711,7 +1710,7 @@ AND "'.$end_date.' 23:59:00"';
 			->where(array('sale_status !=' => 'ordered'))
                 ->having('grand_total != return_sale')
 			->group_by('sales.id');
-			if(isset($_REQUEST['d'])){
+			/*if(isset($_REQUEST['d'])){
 				$date = $_GET['d'];
 				$date1 = str_replace("/", "-", $date);
 				$date =  date('Y-m-d', strtotime($date1));
@@ -1720,8 +1719,9 @@ AND "'.$end_date.' 23:59:00"';
 				->where("date >=", $date)
 				->where('DATE_SUB(date, INTERVAL 1 DAY) <= CURDATE()')
 				->where('sales.payment_term <>', 0);
-			}
-        }        
+			}*/
+        }
+
         if ($this->permission['sales-index'] = ''){
             if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin) {
                 $this->datatables->where('created_by', $this->session->userdata('user_id'));
@@ -1747,7 +1747,7 @@ AND "'.$end_date.' 23:59:00"';
 			$this->datatables->where('sales.biller_id', $biller);
 		}
 		if ($start_date) {
-			$this->datatables->where($this->db->dbprefix('sales').'.date BETWEEN "' . $start_date . '" and "' . $end_date . '"');
+			$this->datatables->where($this->db->dbprefix('sales').'.date BETWEEN "' . $start_date . '00:00:00 " and "' . $end_date . '23:59:00 "');
 		}
 		
 		if($dt == 30){
