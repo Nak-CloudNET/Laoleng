@@ -9900,7 +9900,7 @@ AND "'.$end_date.' 23:59:00"';
 		$customer_group = $this->site->getCustomerGroupByID($customer->customer_group_id);
 		$user_setting 	= $this->site->getUserSetting($this->session->userdata('user_id'));
 		$rows 			= $this->sales_model->getProductNames($sr, $warehouse_id, $user_setting->sales_standard, $user_setting->sales_combo, $user_setting->sales_digital, $user_setting->sales_service, $user_setting->sales_category);
-		$expiry_status = 0;
+		$expiry_status  = 0;
 		if($this->site->get_setting()->product_expiry == 1){
 			$expiry_status = 1;
 		}
@@ -10069,7 +10069,7 @@ AND "'.$end_date.' 23:59:00"';
 				}
 		
 			}
-			
+			//$this->erp->print_arrays($pr);
 			echo json_encode($pr);
         } else {
             echo json_encode(array(array('id' => 0, 'label' => lang('no_match_found'), 'value' => $term)));
