@@ -3111,7 +3111,8 @@ var lang = {unexpected_value: '<?=lang('unexpected_value');?>', select_above: '<
         function autoCalcurrencies(total_p){
             $(".curr_tpay").each(function(){
                 var rate = $(this).attr('rate');
-                $(this).html((total_p*rate).toFixed(0));
+                $(this).html(formatMoney(parseFloat((total_p * rate)).toFixed(0)));
+                // $(this).html((total_p*rate).toFixed(0));
             });
         }
 		
