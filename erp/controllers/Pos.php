@@ -479,39 +479,40 @@ class Pos extends MY_Controller
 			$totalcost 			= 0;
             $i = isset($_POST['product_code']) ? sizeof($_POST['product_code']) : 0;
             for ($r = 0; $r < $i; $r++){
-                $item_id   = $_POST['product_id'][$r];
-                $digital_id   = $_POST['digital_id'][$r];
-                $item_type = $_POST['product_type'][$r];
-                $item_code = $_POST['product_code'][$r];
-				$item_note = $_POST['product_note'][$r];
-                $item_name = $_POST['product_name'][$r];
-				$item_cost = $_POST['item_cost'][$r];
-                $item_option = isset($_POST['product_option'][$r]) && $_POST['product_option'][$r] != 'false' ? $_POST['product_option'][$r] : NULL;
+                $item_id   		= $_POST['product_id'][$r];
+                $digital_id   	= $_POST['digital_id'][$r];
+                $item_type 		= $_POST['product_type'][$r];
+                $item_code 		= $_POST['product_code'][$r];
+				$item_note 		= $_POST['product_note'][$r];
+                $item_name 		= $_POST['product_name'][$r];
+				$item_cost 		= $_POST['item_cost'][$r];
+                $item_option 	= isset($_POST['product_option'][$r]) && $_POST['product_option'][$r] != 'false' ? $_POST['product_option'][$r] : NULL;
 			    $expire_date_id = isset($_POST['expdate'][$r]) && $_POST['expdate'][$r] != 'false' ? $_POST['expdate'][$r] : null;
-				$expdate = $this->sales_model->getPurchaseItemExDateByID($expire_date_id)->expiry;
+				$expdate 		= $this->sales_model->getPurchaseItemExDateByID($expire_date_id)->expiry;
                 $real_unit_price = $this->erp->formatDecimal($_POST['real_unit_price'][$r]);
-                $unit_price = $this->erp->formatDecimal($_POST['unit_price'][$r]);
-                $item_quantity = $_POST['quantity'][$r]; 
-                $item_serial = isset($_POST['serial'][$r]) ? $_POST['serial'][$r] : '';
-                $item_tax_rate = isset($_POST['product_tax'][$r]) ? $_POST['product_tax'][$r] : NULL;
-                $item_discount = isset($_POST['product_discount'][$r]) ? $_POST['product_discount'][$r] : NULL;
+                $unit_price 	= $this->erp->formatDecimal($_POST['unit_price'][$r]);
+                $item_quantity 	= $_POST['quantity'][$r]; 
+                $item_serial 	= isset($_POST['serial'][$r]) ? $_POST['serial'][$r] : '';
+                $item_tax_rate 	= isset($_POST['product_tax'][$r]) ? $_POST['product_tax'][$r] : NULL;
+                $item_discount 	= isset($_POST['product_discount'][$r]) ? $_POST['product_discount'][$r] : NULL;
 				
                 
                 $g_total_txt = $_POST['grand_total'][$r];
 				
-                if (isset($item_code) && isset($real_unit_price) && isset($unit_price) && isset($item_quantity)) {
-                    $product_details = $item_type != 'manual' ? $this->pos_model->getProductByCode($item_code) : NULL;
-                    $unit_price = $real_unit_price;
-                    $pr_discount = 0;
+                if (isset($item_code) && isset($real_unit_price) && isset($unit_price) && isset($item_quantity)) 
+				{
+                    $product_details 	= $item_type != 'manual' ? $this->pos_model->getProductByCode($item_code) : NULL;
+                    $unit_price 		= $real_unit_price;
+                    $pr_discount 		= 0;
 
                     if (isset($item_discount)) {
-                        $discount = $item_discount;
-                        $dpos = strpos($discount, $percentage);
+                        $discount 		= $item_discount;
+                        $dpos 			= strpos($discount, $percentage);
                         if ($dpos !== false) {
                             $pds = explode("%", $discount);
-                            $pr_discount = ((($this->erp->formatDecimal($unit_price, 8)) * (Float) ($pds[0])) / 100);
+                            $pr_discount= ((($this->erp->formatDecimal($unit_price, 8)) * (Float) ($pds[0])) / 100);
                         } else {
-                            $pr_discount = $this->erp->formatDecimal($discount/$item_quantity, 8);
+                            $pr_discount= $this->erp->formatDecimal($discount/$item_quantity, 8);
                         }
                     }
                     
@@ -555,10 +556,13 @@ class Pos extends MY_Controller
 					
 					$product_tax += $pr_item_tax;
 					
+					$quantity_balance = 0;
 					if($item_option != 0) {
-						$row = $this->purchases_model->getVariantQtyById($item_option);
-						
-						$item_cost   = $item_cost * $row->qty_unit;
+						$row 				= $this->purchases_model->getVariantQtyById($item_option);
+						$quantity_balance 	= $item_quantity * $row->qty_unit;
+						$item_cost   		= $item_cost * $row->qty_unit;
+					} else {
+						$quantity_balance 	= $item_quantity;
 					}
 					
 					$totalcost	+= $item_cost;
@@ -569,35 +573,35 @@ class Pos extends MY_Controller
 					}else{
 						$subtotal = (($unit_price * $item_quantity) + $pr_item_tax);
 					}
-					
-                    
+						
                     $products[] = array(
-                        'product_id' => $item_id,
-                        'digital_id' => $digital_id,
-                        'product_code' => $item_code,
-                        'product_name' => $item_name,
-                        'product_type' => $item_type,
-                        'option_id' => $item_option,
-                        'net_unit_price' => $item_net_price,
-                        'unit_price' => $this->erp->formatDecimal($unitPrice),
-                        'quantity' => $item_quantity,
-                        'warehouse_id' => $warehouse_id,
-                        'item_tax' => $pr_item_tax,
-                        'tax_rate_id' => $pr_tax,
-                        'tax' => $tax,
-						//'unit_cost' => $item_cost,
-                        'discount' => $item_discount,
-                        'item_discount' => $pr_item_discount,
-                        'subtotal' => $this->erp->formatDecimal($subtotal),
-                        'serial_no' => $item_serial,
-                        'real_unit_price' => $real_unit_price,
-						'product_noted' => $item_note,
+                        'product_id' 		=> $item_id,
+                        'digital_id' 		=> $digital_id,
+                        'product_code' 		=> $item_code,
+                        'product_name' 		=> $item_name,
+                        'product_type' 		=> $item_type,
+                        'option_id' 		=> $item_option,
+                        'net_unit_price' 	=> $item_net_price,
+                        'unit_price' 		=> $this->erp->formatDecimal($unitPrice),
+                        'quantity' 			=> $item_quantity,
+                        'quantity_balance' 	=> $quantity_balance,
+                        'warehouse_id' 		=> $warehouse_id,
+                        'item_tax' 			=> $pr_item_tax,
+                        'tax_rate_id' 		=> $pr_tax,
+                        'tax' 				=> $tax,
+						//'unit_cost' 		=> $item_cost,
+                        'discount' 			=> $item_discount,
+                        'item_discount' 	=> $pr_item_discount,
+                        'subtotal' 			=> $this->erp->formatDecimal($subtotal),
+                        'serial_no' 		=> $item_serial,
+                        'real_unit_price' 	=> $real_unit_price,
+						'product_noted' 	=> $item_note,
 						'expiry' 			=> $expdate,
 						'expiry_id' 		=> $expire_date_id
                     );					
-                    $total += $subtotal;
-					$g_total_txt1 += $subtotal;
-					$total_discount+=$product_discount;
+                    $total 			+= $subtotal;
+					$g_total_txt1 	+= $subtotal;
+					$total_discount	+= $product_discount;
                 }
 				
             }
@@ -636,21 +640,21 @@ class Pos extends MY_Controller
                 $order_tax_id = null;
             }
 
-			$total_tax = $this->erp->formatDecimal(($product_tax + $order_tax), 4);
-			$grand_total = $this->erp->formatDecimal((($total - $order_discount) + ($order_tax + $this->erp->formatDecimal($shipping))), 4);
-			$cur_rate = $this->pos_model->getExchange_rate();
+			$total_tax 		= $this->erp->formatDecimal(($product_tax + $order_tax), 4);
+			$grand_total 	= $this->erp->formatDecimal((($total - $order_discount) + ($order_tax + $this->erp->formatDecimal($shipping))), 4);
+			$cur_rate 		= $this->pos_model->getExchange_rate();
 			$other_cur_paid = 0;
-			$pos_balance = 0;
-			$paidd = 0;
-			$amount = $this->input->post('amount[0]');
+			$pos_balance 	= 0;
+			$paidd 			= 0;
+			$amount 		= $this->input->post('amount[0]');
 			$other_cur_paid = $this->input->post('other_cur_paid[0]');
-			$paidd = $amount;
-			$p_cur = isset($_POST['other_cur_paid']) ? sizeof($_POST['other_cur_paid']) : 0;
+			$paidd 			= $amount;
+			$p_cur 			= isset($_POST['other_cur_paid']) ? sizeof($_POST['other_cur_paid']) : 0;
 			if(isset($p_cur) && empty($_POST['amount'][0])){
-				$paidd = $other_cur_paid / $cur_rate->rate;
+				$paidd 		= $other_cur_paid / $cur_rate->rate;
 				if($paidd >= $grand_total) {
 					$pos_balance = $paidd - $grand_total;
-					$paidd = $grand_total;
+					$paidd 	= $grand_total;
 					
 					if($other_cur_paid>$pos_balance){
 						$other_cur_paid = (($other_cur_paid/$cur_rate->rate) - $pos_balance) * $cur_rate->rate;
@@ -670,13 +674,13 @@ class Pos extends MY_Controller
 				}
 			}
 			
-			$suppend_name = $this->pos_model->get_suppendName($did);
+			$suppend_name 	= $this->pos_model->get_suppendName($did);
 
-            $i=1;
-            $query=0; 
+            $i				= 1;
+            $query			= 0; 
 
-            $date = $this->input->post('date');
-            $dates = date('Y-m-d',strtotime($date));
+            $date 			= $this->input->post('date');
+            $dates 			= date('Y-m-d',strtotime($date));
                 
             $this->db
                 ->select("DATE_FORMAT(date,'%d') as date, biller_id, queue")
@@ -713,7 +717,7 @@ class Pos extends MY_Controller
                 'shipping'          => $this->erp->formatDecimal($shipping),
                 'grand_total'       => $grand_total,
                 'total_items'       => $total_items,
-               // 'total_cost'        => $totalcost,
+				//'total_cost'      => $totalcost,
                 'sale_status'       => $sale_status,
                 'payment_status'    => $payment_status,
                 'recieve_usd'       => $recieve_usd,
@@ -729,7 +733,7 @@ class Pos extends MY_Controller
 				'saleman_by'        => $saleman_id,
 				'type'              => $this->input->post('sale_type'),
 				'type_id'           => $this->input->post('sale_type_id'),
-				'queue'           => $query
+				'queue'           	=> $query
             );
             
 			
@@ -739,16 +743,16 @@ class Pos extends MY_Controller
 				for($m = 0; $m < $no; $m++){
 					$dateline = $this->erp->fld($_POST['dateline'][$m]);
 					$loans[] = array(
-						'period' => $period,
-						'sale_id' => '',
-						'interest' => $_POST['interest'][$m],
+						'period' 	=> $period,
+						'sale_id' 	=> '',
+						'interest' 	=> $_POST['interest'][$m],
 						'principle' => $_POST['principle'][$m],
-						'payment' => $_POST['payment_amt'][$m],
-						'balance' => $_POST['balance'][$m],
-						'type' => $_POST['loan_type'],
-						'rated' => $_POST['loan_rate'],
-						'note' => $_POST['note1'][$m],
-						'dateline' => $dateline
+						'payment' 	=> $_POST['payment_amt'][$m],
+						'balance' 	=> $_POST['balance'][$m],
+						'type' 		=> $_POST['loan_type'],
+						'rated' 	=> $_POST['loan_rate'],
+						'note' 		=> $_POST['note1'][$m],
+						'dateline' 	=> $dateline
 					);
 					$period++;
 				}
@@ -891,6 +895,7 @@ class Pos extends MY_Controller
                 $payment = array();
             }
 			
+			//$this->erp->print_arrays($products);
 			
         }
 
@@ -1864,26 +1869,28 @@ class Pos extends MY_Controller
 					}
 				}
 			}
-			
-			
-			if($group_prices)
-			{
-			   $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
-			   $row->price_id = $group_prices[0]->id ? $group_prices[0]->id : 0;
-			   $row->price = $group_prices[0]->price ? $group_prices[0]->price : 0;
-			   
-			   if($customer_group->makeup_cost == 1){
-					//$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
-					$row->price = $row->cost + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+				
+				if($group_prices)
+				{
+				   $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+				   $row->price_id = $group_prices[0]->id ? $group_prices[0]->id : 0;
+				   $row->price = $group_prices[0]->price ? $group_prices[0]->price : 0;
+				   
+				   if($customer_group->makeup_cost == 1){
+						//$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
+						$row->price = $row->cost + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
 
-			   }else{
-				   //$row->price = $group_prices[0]->price;
-					$row->price = $group_prices[0]->price + (($group_prices[0]->price * $customer_group->percent) / 100);
-					
+                   }else{
+                       //$row->price = $group_prices[0]->price;
+						$row->price = $group_prices[0]->price + (($group_prices[0]->price * $customer_group->percent) / 100);
+					}
+				}else{
+					$row->price_id = 0;
 				}
-			}else{
-				$row->price_id = 0;
-			}
+				
+			
+			
+			
 			
             $row->real_unit_price = $row->price; 
 		

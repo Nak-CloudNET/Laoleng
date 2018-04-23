@@ -3387,48 +3387,15 @@ class Site extends CI_Model
 								'expiry'			=> $item['expiry']
 							);
 
-							if ($pi = $this->getPurchasedItem($clause)) {
-								
-								$clause['quantity'] = 0;
-								$clause['item_tax'] = 0;
-								$clause['date']     = 0;
-								if($option_id){
-									$option = $this->getProductVariantOptionIDPID($option_id, $item['product_id']);
-									if($option->qty_unit > 0){
-										$qty = $option->qty_unit;
-									}
-									$clause['quantity_balance'] = $item['quantity_balance'] * $qty;
-								}else{
-									$clause['quantity_balance'] = $item['quantity_balance'];
-								}
-								$clause['product_code'] 		= $product->code;
-								$clause['product_name'] 		= $product->name;
-								$clause['product_type'] 		= $product->type;
-								$clause['date'] 				= $item['date']?$item['date']:date('Y-m-d');
-								$clause['status']               = 'received';
-								$this->db->insert('purchase_items', $clause);
-
-							} else {
-								
-								$clause['quantity'] = 0;
-								$clause['item_tax'] = 0;
-								if($option_id){
-									$option = $this->getProductVariantOptionIDPID($option_id, $item['product_id']);
-									if($option->qty_unit > 0){
-										$qty = $option->qty_unit;
-									}
-									$clause['quantity_balance'] = $item['quantity_balance'] * $qty;
-									//$clause['quantity_balance'] = $item['quantity_balance'] * $option->qty_unit;
-								}else{
-									$clause['quantity_balance'] = $item['quantity_balance'];
-								}
-								$clause['product_code'] 		= $product->code;
-								$clause['product_name'] 		= $product->name;
-								$clause['product_type'] 		= $product->type;
-								$clause['date'] = $item['date']?$item['date']:date('Y-m-d');
-								$clause['status']               = 'received';
-								$this->db->insert('purchase_items', $clause);
-							}
+							$clause['quantity'] = 0;
+							$clause['item_tax'] = 0;
+							$clause['quantity_balance'] = $item['quantity_balance'];
+							$clause['product_code'] 		= $product->code;
+							$clause['product_name'] 		= $product->name;
+							$clause['product_type'] 		= $product->type;
+							$clause['date'] 				= $item['date']?$item['date']:date('Y-m-d');
+							$clause['status']               = 'received';
+							$this->db->insert('purchase_items', $clause);
 						} else {
 							/* Add New */
 							if ($item['inventory']) {

@@ -9014,7 +9014,7 @@ AND "'.$end_date.' 23:59:00"';
 					'bank_account' 	=> $this->input->post('bank_account'),
 					'add_payment' 	=> '1'
 				);
-				$this->erp->print_arrays($payment);
+				
 				if($payment['amount'] > 0 ){
 					$this->sales_model->addSalePaymentMulti($payment);
 				}
