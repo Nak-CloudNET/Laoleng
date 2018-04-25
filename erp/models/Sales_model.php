@@ -807,7 +807,7 @@ class Sales_model extends CI_Model
         }
         return FALSE;
     }
-	 public function getAllReturnsItem($sale_id)
+	public function getAllReturnsItem($sale_id)
     {
         $this->db->select('return_items.*, tax_rates.code as tax_code, tax_rates.name as tax_name, tax_rates.rate as tax_rate, (CASE WHEN erp_products.unit = 0 THEN erp_products.unit ELSE erp_units.name END) as uname, products.details as details, product_variants.name as variant, products.unit, products.promotion, categories.name AS category_name')
             ->join('products', 'products.id=return_items.product_id', 'left')
@@ -815,6 +815,7 @@ class Sales_model extends CI_Model
             ->join('tax_rates', 'tax_rates.id=return_items.tax_rate_id', 'left')
 			->join('categories', 'categories.id = products.category_id', 'left')
             ->join('units', 'units.id = products.unit', 'left')
+            ->where('return_items.subtotal >', 0)
             ->group_by('return_items.id')
             ->order_by('id', 'asc');
         $q = $this->db->get_where('return_items', array('return_id' => $sale_id));
