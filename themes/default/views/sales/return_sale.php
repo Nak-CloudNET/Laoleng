@@ -512,7 +512,7 @@
                     tr_html += '<td class="text-right"><input class="form-control input-sm text-right rproduct_tax" name="product_tax[]" type="hidden" id="product_tax_' + row_no + '" value="' + pr_tax.id + '"><span class="text-right sproduct_tax" id="sproduct_tax_' + row_no + '">' + (pr_tax_rate ? '(' + pr_tax_rate + ')' : '') + ' ' + formatMoney(pr_tax_val * item_qty) + '</span></td>';
                 }
                 tr_html += '<td class="text-right"><span class="text-right ssubtotal" id="subtotal_' + row_no + '">' + (item_tax_method == 0?formatMoney(((parseFloat(real_unit_price) * parseFloat(item_qty))) - (item_discount*parseFloat(item_qty))):formatMoney(((parseFloat(unit_price) * parseFloat(item_qty))) - (item_discount*parseFloat(item_qty)) + parseFloat(pr_tax_val)* parseFloat(item_qty))) + '</span></td>';
-                tr_html += '<td class="text-center"><i class="fa fa-times tip pointer redel" id="' + row_no + '" title="Remove" style="cursor:pointer;"></i></td>';
+                tr_html += '<td class="text-center"><i class="fa fa-times tip pointer " id="' + row_no + '" title="Remove" style="cursor:pointer;"></i></td>';
                 newTr.html(tr_html);
                 newTr.prependTo("#reTable");
                 total += (item_tax_method == 0?(((parseFloat(real_unit_price) * parseFloat(item_qty))) - (item_discount*parseFloat(item_qty))):(((parseFloat(unit_price) * parseFloat(item_qty))) - (item_discount*parseFloat(item_qty)) + parseFloat(pr_tax_val)* parseFloat(item_qty)));
