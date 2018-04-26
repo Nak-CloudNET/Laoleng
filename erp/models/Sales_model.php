@@ -230,8 +230,8 @@ class Sales_model extends CI_Model
 		->join('categories', 'categories.id=products.category_id', 'left')
 		->group_by('products.id');
 		$this->db->where("(".$this->db->dbprefix('products').".code LIKE '%" . $term . "%' )");
-		//$this->db->limit($limit);
-		$q = $this->db->get('products');
+
+        $q = $this->db->get('products');
 		if ($q->num_rows() > 0) {
 			foreach (($q->result()) as $row) {
 				$data[] = $row;
