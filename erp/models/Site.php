@@ -2324,18 +2324,12 @@ class Site extends CI_Model
 	}
 	
 	public function calculateAVCost($product_id, $warehouse_id, $net_unit_price, $unit_price, $quantity, $product_name, $option_id, $item_quantity, $transaction_type, $transaction_id, $status,$expiry, $old_sqty = 0) {
-		
-        if($option_id){
-			$qty_unit = $this->getUnitQuantity($option_id,$product_id)->qty_unit;
-			$real_item_qty = $quantity * $qty_unit;
-		}else{
-			$real_item_qty = $quantity;
-        }
+
         $warehouse_qty = $this->getWarehouseQty($product_id, $warehouse_id)->quantity;
         $warehouse_qty += $old_sqty;
 
-        if (($real_item_qty > $warehouse_qty && $this->Settings->overselling == 1) || ($warehouse_qty <= 0 && $this->Settings->overselling == 1)) {
-            $this->session->set_flashdata('error', sprintf(lang("quantity_out_of_stock_for_%s"), ($pi->product_name ? $pi->product_name : $product_name)));
+        if (($quantity > $warehouse_qty && !$this->Settings->overselling) || ($warehouse_qty <= 0 && !$this->Settings->overselling)) {
+            $this->session->set_flashdata('error', sprintf(lang("quantity_out_of_stock_for_%s"), $product_name));
             redirect($_SERVER["HTTP_REFERER"]);
         } else {
 			$getProduct = $this->site->getProductByID($product_id);
@@ -2817,13 +2811,12 @@ class Site extends CI_Model
         if (!isset($item['option_id']) || $item['option_id'] == 'null') {
             $item['option_id'] = NULL;
         }
-		
-		
+
         if ($this->Settings->accounting_method != 2 && !$this->Settings->overselling) {
 			
 			if ($this->site->getProductByID($item['product_id'])) {
                 if ($item['product_type'] == 'standard') {
-					$cost = $this->site->calculateAVCost($item['product_id'], $item['warehouse_id'], $item['net_unit_price'], $item['unit_price'], $item['quantity'], $item['product_name'], $item['option_id'], $item_quantity, $item['transaction_type'], $item['transaction_id'], $item['status']);
+					$cost = $this->site->calculateAVCost($item['product_id'], $item['warehouse_id'], $item['net_unit_price'], $item['unit_price'], $item['quantity_balance'], $item['product_name'], $item['option_id'], $item_quantity, $item['transaction_type'], $item['transaction_id'], $item['status']);
                 } elseif ($item['product_type'] == 'combo') {
                     $combo_items = $this->getProductComboItems($item['product_id'], $item['warehouse_id']);
                     foreach ($combo_items as $combo_item) {
@@ -2844,7 +2837,7 @@ class Site extends CI_Model
                             $unit_price 		= $combo_item->unit_price;
                         }
                         if ($pr->type == 'standard') {
-							$cost = $this->site->calculateAVCost($pr->id, $item['warehouse_id'], $net_unit_price, $unit_price, ($combo_item->qty * $item['quantity']), $pr->name, NULL, $item_quantity, $item['transaction_type'], $item['transaction_id'], $item['status']);
+							$cost = $this->site->calculateAVCost($pr->id, $item['warehouse_id'], $net_unit_price, $unit_price, ($combo_item->qty * $item['quantity_balance']), $pr->name, NULL, $item_quantity, $item['transaction_type'], $item['transaction_id'], $item['status']);
                         } else {
                             $cost = array(
 								array(
@@ -2863,7 +2856,7 @@ class Site extends CI_Model
 									'quantity_balance' 		 => NULL, 
 									'inventory' 			 => NULL,
 									'transaction_type' 		 => $item['transaction_type'], 
-									'transaction_type' 		 => $item['transaction_id'],
+									'transaction_id' 		 => $item['transaction_id'],
 									'status' 				 => $item['status']
 								)
 							);
@@ -2887,7 +2880,7 @@ class Site extends CI_Model
 							'quantity_balance' 			=> NULL, 
 							'inventory' 				=> NULL,
 							'transaction_type' 			=> $item['transaction_type'], 
-							'transaction_type' 			=> $item['transaction_id'],
+							'transaction_id' 			=> $item['transaction_id'],
 							'status' 					=> $item['status']
 						)
 					);
@@ -2907,7 +2900,7 @@ class Site extends CI_Model
 						'quantity_balance' 			=> NULL, 
 						'inventory' 				=> NULL,
 						'transaction_type' 			=> $item['transaction_type'], 
-						'transaction_type' 			=> $item['transaction_id'],
+						'transaction_id' 			=> $item['transaction_id'],
 						'status' 					=> $item['status']
 					)
 				);
@@ -2916,11 +2909,11 @@ class Site extends CI_Model
 			
             if ($this->site->getProductByID($item['product_id'])) {
                 if ($item['product_type'] == 'standard') {
-                    $cost = $this->site->calculateAVCost($item['product_id'], $item['warehouse_id'], $item['net_unit_price'], $item['unit_price'], $item['quantity'], $item['product_name'], $item['option_id'], $item_quantity, (isset($item['transaction_type'])?$item['transaction_type']:''), (isset($item['transaction_id'])?$item['transaction_id']:''),(isset($item['status'])?$item['status']:''),$item['expiry']?$item['expiry']:NULL, $item['old_sqty']);
+                    $cost = $this->site->calculateAVCost($item['product_id'], $item['warehouse_id'], $item['net_unit_price'], $item['unit_price'], $item['quantity_balance'], $item['product_name'], $item['option_id'], $item_quantity, (isset($item['transaction_type'])?$item['transaction_type']:''), (isset($item['transaction_id'])?$item['transaction_id']:''),(isset($item['status'])?$item['status']:''),$item['expiry']?$item['expiry']:NULL, $item['old_sqty']);
                 } elseif ($item['product_type'] == 'combo') {
                     $combo_items = $this->getProductComboItems($item['product_id'], $item['warehouse_id']);
                     foreach ($combo_items as $combo_item) {
-                        $cost = $this->site->calculateAVCost($combo_item->id, $item['warehouse_id'], ($combo_item->qty * $item['quantity']), $item['unit_price'], $item['quantity'], $item['product_name'], $item['option_id'], $item_quantity, (isset($item['transaction_type'])?$item['transaction_type']:''), (isset($item['transaction_id'])?$item['transaction_id']:''),(isset($item['status'])?$item['status']:''),$item['expiry']?$item['expiry']:NULL);
+                        $cost = $this->site->calculateAVCost($combo_item->id, $item['warehouse_id'], ($combo_item->qty * $item['quantity']), $item['unit_price'], $item['quantity_balance'], $item['product_name'], $item['option_id'], $item_quantity, (isset($item['transaction_type'])?$item['transaction_type']:''), (isset($item['transaction_id'])?$item['transaction_id']:''),(isset($item['status'])?$item['status']:''),$item['expiry']?$item['expiry']:NULL);
                     }
                 } else {
                     $cost = array(
@@ -2942,7 +2935,7 @@ class Site extends CI_Model
 							'quantity_balance' 			=> NULL, 
 							'inventory' 				=> NULL,
 							'transaction_type' 			=> $item['transaction_type'], 
-							'transaction_type' 			=> $item['transaction_id'],
+							'transaction_id' 			=> $item['transaction_id'],
 							'status' 					=> $item['status']
 						)
 					);
@@ -2962,7 +2955,7 @@ class Site extends CI_Model
 						'quantity_balance' 			=> NULL, 
 						'inventory' 				=> NULL,
 						'transaction_type' 			=> $item['transaction_type'], 
-						'transaction_type' 			=> $item['transaction_id'],
+						'transaction_id' 			=> $item['transaction_id'],
 						'status' 					=> $item['status']
 					)
 				);
@@ -3394,48 +3387,15 @@ class Site extends CI_Model
 								'expiry'			=> $item['expiry']
 							);
 
-							if ($pi = $this->getPurchasedItem($clause)) {
-								
-								$clause['quantity'] = 0;
-								$clause['item_tax'] = 0;
-								$clause['date']     = 0;
-								if($option_id){
-									$option = $this->getProductVariantOptionIDPID($option_id, $item['product_id']);
-									if($option->qty_unit > 0){
-										$qty = $option->qty_unit;
-									}
-									$clause['quantity_balance'] = $item['quantity_balance'] * $qty;
-								}else{
-									$clause['quantity_balance'] = $item['quantity_balance'];
-								}
-								$clause['product_code'] 		= $product->code;
-								$clause['product_name'] 		= $product->name;
-								$clause['product_type'] 		= $product->type;
-								$clause['date'] 				= $item['date']?$item['date']:date('Y-m-d');
-								$clause['status']               = 'received';
-								$this->db->insert('purchase_items', $clause);
-
-							} else {
-								
-								$clause['quantity'] = 0;
-								$clause['item_tax'] = 0;
-								if($option_id){
-									$option = $this->getProductVariantOptionIDPID($option_id, $item['product_id']);
-									if($option->qty_unit > 0){
-										$qty = $option->qty_unit;
-									}
-									$clause['quantity_balance'] = $item['quantity_balance'] * $qty;
-									//$clause['quantity_balance'] = $item['quantity_balance'] * $option->qty_unit;
-								}else{
-									$clause['quantity_balance'] = $item['quantity_balance'];
-								}
-								$clause['product_code'] 		= $product->code;
-								$clause['product_name'] 		= $product->name;
-								$clause['product_type'] 		= $product->type;
-								$clause['date'] = $item['date']?$item['date']:date('Y-m-d');
-								$clause['status']               = 'received';
-								$this->db->insert('purchase_items', $clause);
-							}
+							$clause['quantity'] = 0;
+							$clause['item_tax'] = 0;
+							$clause['quantity_balance'] = $item['quantity_balance'];
+							$clause['product_code'] 		= $product->code;
+							$clause['product_name'] 		= $product->name;
+							$clause['product_type'] 		= $product->type;
+							$clause['date'] 				= $item['date']?$item['date']:date('Y-m-d');
+							$clause['status']               = 'received';
+							$this->db->insert('purchase_items', $clause);
 						} else {
 							/* Add New */
 							if ($item['inventory']) {

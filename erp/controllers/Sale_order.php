@@ -2743,50 +2743,63 @@ class Sale_order extends MY_Controller
 				}else{
 					$percent = $this->sales_model->getCustomerMakup($customer->customer_group_id,$row->id,0);
 				}
-				
-				if ($opt->price != 0) {
-					if($customer_group->makeup_cost == 1 && $percent!=""){
-						if($setting->attributes==1)
-						{
-							if(isset($percent->percent)) {
-								$row->price = ($row->cost*$opt->qty_unit)  + ((($row->cost*$opt->qty_unit)  * (isset($percent->percent)?$percent->percent:0)) / 100);
-							}else {
-								$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
-							}
-						}
-					}else{
-						if($setting->attributes==1)
-						{
-							$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
-						}
-					}
-                } else { 
-					if($customer_group->makeup_cost == 1 && $percent!=""){
-						if($setting->attributes==1)
-						{
-							if(isset($percent->percent)) {
-								$row->price = $row->cost  + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
-							}else {
-								$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
-							}
-						}
-					}else{
-						if($setting->attributes==1)
-						{
-							$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
-						}
-					}
+
+                if ($opt->price != 0) {
+                    if($customer_group->makeup_cost == 1 && $percent!=""){
+
+                        if($setting->attributes==1)
+                        {
+                            if(isset($percent->percent)) {
+                                $row->price = ($row->cost*$opt->qty_unit)  + ((($row->cost*$opt->qty_unit)  * (isset($percent->percent)?$percent->percent:0)) / 100);
+                            }else {
+                                $row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+                            }
+                        }
+                    }else{
+
+                        if($setting->attributes==1)
+                        {
+                            $row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+                        }
+                    }
+                } else {
+
+                    if($customer_group->makeup_cost == 1 && $percent!=""){
+                        if($setting->attributes==1)
+                        {
+                            if(isset($percent->percent)) {
+                                $row->price = $row->cost  + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+                            }else {
+                                $row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+                            }
+                        }
+                    }else{
+
+                        if($setting->attributes==1)
+                        {
+                            $row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+                        }
+                    }
                 }
-				
-				//$this->erp->print_arrays($all_group_prices);
-				
-				//$curr_by_item = $this->site->getCurrencyByCode($group_prices->currency_code);
-			//	$this->erp->print_arrays($curr_by_item);
-				if($group_prices)
-				{
-				   $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
-				}
-				
+
+                if($group_prices)
+                {
+                    $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+                    $row->price_id = $group_prices[0]->id ? $group_prices[0]->id : 0;
+                    $row->price = $group_prices[0]->price ? $group_prices[0]->price : 0;
+
+                    if($customer_group->makeup_cost == 1){
+                        //$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
+                        $row->price = $row->cost + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
+
+                    }else{
+                        //$row->price = $group_prices[0]->price;
+                        $row->price = $group_prices[0]->price + (($group_prices[0]->price * $customer_group->percent) / 100);
+                    }
+                }else{
+                    $row->price_id = 0;
+                }
+
 				$row->rate_item_cur   = (isset($curr_by_item->rate)?$curr_by_item->rate:0);
 				
                 $row->real_unit_price = $row->price;
@@ -2810,7 +2823,7 @@ class Sale_order extends MY_Controller
                     $pr[] = array('id' => str_replace(".", "", microtime(true)), 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'combo_items' => $combo_items, 'tax_rate' => false, 'options' => $options,'group_price'=>$group_price,'group_prices'=>$group_prices, 'all_group_price' => $all_group_prices, 'makeup_cost'=>$customer_group->makeup_cost, 'customer_percent' => $customer_group->percent,'makeup_cost_percent'=>$percent->percent);
                 }
             }
-			
+            //$this->erp->print_arrays($pr);
             echo json_encode($pr);
         } else {
             echo json_encode(array(array('id' => 0, 'label' => lang('no_match_found'), 'value' => $term)));

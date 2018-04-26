@@ -1140,6 +1140,7 @@ function loadItems() {
 		$.each(positems, function (i, e) {
 			
 			var item 			= this;
+			
 			var item_id 		= site.settings.item_addition == 1 ? item.item_id : item.id;
 			positems[item_id] 	= item;
 			var item_note 		= '';
@@ -1178,6 +1179,7 @@ function loadItems() {
 			w_piece 			= item.row.w_piece;			
 			var unit_price 		= item.row.real_unit_price;
 			var real_unit_price = item.row.real_unit_price;
+			
 			var p_kh_rate 		= localStorage.getItem('exchange_kh'); 
 			var default_price 	= 0;
 			var cost_items      = item.row.cost;

@@ -395,12 +395,12 @@ class Pos_model extends CI_Model
 			
 			$i = 0;
             foreach ($items as $item) {
-				$product = $this->site->getProductByID($item['product_id']);
-				$item['unit_cost'] 	= $product->cost;
-                $real_qty = $item['quantity'];
-                $item['sale_id'] = $sale_id;
+				$product 						= $this->site->getProductByID($item['product_id']);
+				$item['unit_cost'] 				= $product->cost;
+                $real_qty 						= $item['quantity'];
+                $item['sale_id'] 				= $sale_id;
                 $this->db->insert('sale_items', $item);
-				$sale_item_id = $this->db->insert_id();
+				$sale_item_id 					= $this->db->insert_id();
 				$items[$i]['transaction_type'] 	= 'SALE';
 				$items[$i]['transaction_id'] 	= $sale_item_id;
 				$items[$i]['status'] 			= ($data['sale_status'] == 'completed'?'received':'');
@@ -441,26 +441,26 @@ class Pos_model extends CI_Model
 			if(strpos($data['paid'], '-') !== false){
 				$sale_items = $this->site->getAllSaleItems($sale_id);			
 				$returns = array(
-					'date' => $data['date'],
-					'sale_id' => $sale_id,
-					'reference_no' => $this->site->getReference('re'),
-					'customer_id' => $data['customer_id'],
-					'customer' => $data['customer'],
-					'biller_id' => $data['biller_id'],
-					'biller' => $data['biller'],
-					'warehouse_id' => $data['warehouse_id'],
-					'note' => $data['note'],
-					'total' => abs($data['paid']),
-					'product_discount' => $data['product_discount'],
+					'date' 				=> $data['date'],
+					'sale_id' 			=> $sale_id,
+					'reference_no' 		=> $this->site->getReference('re'),
+					'customer_id' 		=> $data['customer_id'],
+					'customer' 			=> $data['customer'],
+					'biller_id' 		=> $data['biller_id'],
+					'biller' 			=> $data['biller'],
+					'warehouse_id' 		=> $data['warehouse_id'],
+					'note' 				=> $data['note'],
+					'total' 			=> abs($data['paid']),
+					'product_discount' 	=> $data['product_discount'],
 					'order_discount_id' => $data['order_discount_id'],
-					'order_discount' => $data['order_discount'],
-					'total_discount' => $data['total_discount'],
-					'product_tax' => $data['product_tax'],
-					'order_tax_id' => $data['order_tax_id'],
-					'order_tax' => $data['order_tax'],
-					'total_tax' => $data['total_tax'],
-					'grand_total' => abs($data['grand_total']),
-					'created_by' => $this->session->userdata('user_id'),
+					'order_discount' 	=> $data['order_discount'],
+					'total_discount' 	=> $data['total_discount'],
+					'product_tax' 		=> $data['product_tax'],
+					'order_tax_id' 		=> $data['order_tax_id'],
+					'order_tax' 		=> $data['order_tax'],
+					'total_tax' 		=> $data['total_tax'],
+					'grand_total' 		=> abs($data['grand_total']),
+					'created_by' 		=> $this->session->userdata('user_id'),
 				);
 				if ($this->db->insert('return_sales', $returns)) {
 					$return_id = $this->db->insert_id();
@@ -665,8 +665,7 @@ class Pos_model extends CI_Model
 			if ($data['sale_status'] != 'order') {
 				$this->erp->update_award_points($data['grand_total'], $data['customer_id'], $data['created_by'], NULL ,$data['saleman_by']);
 			}
-			
-            
+			          
             return array('sale_id' => $sale_id, 'message' => $msg);
         }
         return false;

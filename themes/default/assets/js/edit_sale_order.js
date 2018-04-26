@@ -1076,16 +1076,16 @@ $('#slwarehouse').change(function (e) {
 	 * Edit Row Modal Hanlder
 	 ----------------------- */
 	 $(document).on('click', '.edit', function () {
-		var row = $(this).closest('tr');
-		var row_id = row.attr('id');
-		item_id = row.attr('data-item-id');
-		item = sloitems[item_id];
-		var qty = row.children().children('.rquantity').val(),
-		product_option = row.children().children('.roption').val(),
-		unit_price = row.children().children('.ruprice').val(),
-		discount = row.children().children('.rdiscount').val();
-		var default_price = formatDecimal(row.find('.default_price').val());
-		var net_price = unit_price;
+		var row 			= $(this).closest('tr');
+		var row_id 			= row.attr('id');
+		item_id 			= row.attr('data-item-id');
+		item 				= sloitems[item_id];
+		var qty 			= row.children().children('.rquantity').val(),
+		product_option 		= row.children().children('.roption').val(),
+		unit_price 			= row.children().children('.ruprice').val(),
+		discount 			= row.children().children('.rdiscount').val();
+		var default_price 	= formatDecimal(row.find('.default_price').val());
+		var net_price 		= unit_price;
 		
 		$('#prModalLabel').text(item.row.name + ' (' + item.row.code + ')');
 		if (site.settings.tax1) {
@@ -1136,7 +1136,7 @@ $('#slwarehouse').change(function (e) {
 		
 		var opt = '<p style="margin: 12px 0 0 0;">n/a</p>';
 		var opt_group_price = '<p style="margin: 12px 0 0 0;">n/a</p>';
-		
+
 		if(site.settings.attributes == 1){
 			
 			if(item.options !== false) {

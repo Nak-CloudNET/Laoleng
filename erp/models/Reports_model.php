@@ -2790,57 +2790,111 @@ ORDER BY
         }
         return false;
     }
-	public function getCustomerByID($id=null,$wh=null) {
-		
-        // $this->db
-        //         ->select('id, code, name, quantity, unit, cost')
-        //         ->from('erp_products')
-        //         ->where('products.id', $id);
-   		// $this->erp->print_arrays($wh);
-		$sp = "(
+	public function getCustomerByID($id=null, $wh=null, $where=null) {
+        $t_sale = "(
+                    SELECT
+                        erp_sales.customer_id,
+                        COUNT(erp_sales.id) AS amount_sale,
+                        SUM(erp_sales.grand_total) AS sale_grand_total,
+                        SUM(erp_return_sales.grand_total) AS return_amount
+                    FROM
+                        erp_sales
+                    LEFT JOIN erp_return_sales ON erp_sales.return_id = erp_return_sales.id
+                    WHERE
+                        erp_sales.payment_status <> 'paid' AND
+                        (
+                            erp_sales.return_id IS NULL
+                            OR erp_sales.grand_total <> erp_return_sales.grand_total
+                        )
+                        
+                        ".$where."
+                        
+                    GROUP BY
+		                erp_sales.customer_id
+                    ) AS erp_amount_due_sale";
+
+        $sp = "(
 				SELECT
-					SUM(COALESCE(erp_payments.discount, 0)) AS discount,
-					SUM(IF(erp_payments.paid_by = 'deposit', COALESCE(erp_payments.amount, 0), 0)) AS deposit,
-					SUM(IF(erp_payments.paid_by <> 'deposit', COALESCE(erp_payments.amount, 0), 0)) AS payment,
-					erp_sales.customer_id AS cust_id
+					erp_sales.id,
+					erp_sales.customer_id,
+					SUM(
+						COALESCE (erp_payments.discount, 0)
+					) AS discount,
+					SUM(
+
+						IF (
+							erp_payments.paid_by = 'deposit',
+							COALESCE (erp_payments.amount, 0),
+							0
+						)
+					) AS deposit,
+					SUM(
+
+						IF (
+							(
+								erp_payments.paid_by != 'deposit'
+								AND ISNULL(erp_payments.return_id)
+							),
+							erp_payments.amount,
+
+						IF (
+							NOT ISNULL(erp_payments.return_id),
+							((- 1) * erp_payments.amount),
+							0
+						)
+						)
+					) AS payment
 				FROM
 					erp_payments
-				INNER JOIN erp_sales ON erp_sales.id = erp_payments.sale_id
+				LEFT JOIN erp_sales ON erp_sales.id = erp_payments.sale_id
 				WHERE
-					erp_sales.payment_status <> 'paid' AND erp_sales.sale_status <> 'ordered'
-				GROUP BY
-					erp_sales.customer_id
+					erp_sales.payment_status <> 'paid'
+				AND erp_sales.sale_status <> 'ordered'
+				".$where."
+				GROUP BY erp_sales.customer_id
 				) AS erp_pmt";
 
-		$return = "(
+        $return = "(
 				SELECT
-					erp_return_sales.sale_id as sale_id,
-					SUM(COALESCE(erp_return_sales.grand_total, 0)) AS return_sale
+					erp_sales.id,
+					erp_sales.customer_id,
+					SUM(
+						erp_return_sales.grand_total
+					) AS return_amount
 				FROM
 					erp_return_sales
 				LEFT JOIN erp_sales ON erp_sales.id = erp_return_sales.sale_id
+				WHERE
+					erp_sales.payment_status <> 'paid'
+				AND (
+						erp_sales.return_id IS NULL
+						OR erp_sales.grand_total <> erp_return_sales.grand_total
+					)
+					".$where."
 				GROUP BY
-					erp_return_sales.sale_id
+					erp_return_sales.customer_id
 				) AS erp_total_return_sale";
+
 		$this->load->library('datatables');
-   		$this->db->select("erp_companies.id as idd, company, name, phone, email, count(" . $this->db->dbprefix('sales') . ".id) as total, COALESCE(sum(grand_total), 0) as total_amount,
-					SUM(COALESCE(erp_total_return_sale.return_sale, 0)) AS return_sale,
+   		$this->db->select($this->db->dbprefix('companies') . ".id as idd, companies.company, companies.name, 
+					companies.phone, companies.email, 
+					amount_due_sale.amount_sale as total, 
+					amount_due_sale.sale_grand_total as total_amount, 
+					total_return_sale.return_amount as return_sale, 
 					COALESCE(erp_pmt.payment, 0) AS total_payment,
 					COALESCE(erp_pmt.deposit, 0) AS total_deposit,
 					COALESCE(erp_pmt.discount, 0) AS total_discount,
-					(COALESCE(SUM(erp_sales.grand_total), 0) - SUM(COALESCE(erp_total_return_sale.return_sale, 0)) - COALESCE(erp_pmt.payment, 0) - COALESCE(erp_pmt.deposit, 0) - COALESCE(erp_pmt.discount, 0)) AS balance
+					(COALESCE(erp_amount_due_sale.sale_grand_total, 0) - COALESCE(erp_total_return_sale.return_amount, 0) - COALESCE(erp_pmt.payment, 0) - COALESCE(erp_pmt.deposit, 0) - COALESCE(erp_pmt.discount, 0)) AS balance
 					", FALSE)
                 ->from("sales")
                 ->join('companies', 'companies.id = sales.customer_id', 'left')
-				->join($sp, 'pmt.cust_id = sales.customer_id', 'left')
-				->join($return, 'total_return_sale.sale_id = sales.id', 'left')
+                ->join($t_sale, 'amount_due_sale.customer_id = sales.customer_id', 'left')
+                ->join($sp, 'pmt.customer_id = sales.customer_id', 'left')
+                ->join($return, 'total_return_sale.customer_id = sales.customer_id', 'left')
                 ->where(array('companies.group_name' => 'customer', 'sales.payment_status !=' => 'paid'))
                 ->where(array('sales.sale_status !=' => 'ordered'))
 				->where('erp_companies.id', $id)
 				->group_by('companies.id');
-				// if($wh){
-				// 	$this->db->where_in('erp_sales.warehouse_id',$wh);
-				// }
         $q = $this->db->get();
         if ($q->num_rows() > 0) {
             return $q->row();
