@@ -2851,14 +2851,13 @@ class Sale_order extends MY_Controller
         }
         $customer = $this->site->getCompanyByID($customer_id);
         $customer_group = $this->site->getCustomerGroupByID($customer->customer_group_id);
-		//$customer_group = $this->site->getMakeupCostByCompanyID($customer_id);
-		$user_setting = $this->site->getUserSetting($this->session->userdata('user_id'));
+        $user_setting = $this->site->getUserSetting($this->session->userdata('user_id'));
         $rows = $this->sales_model->getProductNames($sr, $warehouse_id, $user_setting->sales_standard, $user_setting->sales_combo, $user_setting->sales_digital, $user_setting->sales_service, $user_setting->sales_category);
         $expiry_status = 0;
 		if($this->site->get_setting()->product_expiry == 1){
 			$expiry_status = 1;
 		}
-		if ($rows) {
+        if ($rows) {
             foreach ($rows as $row) {
                 $option = FALSE;
                 $row->quantity = 0;
@@ -2867,9 +2866,11 @@ class Sale_order extends MY_Controller
                 $row->discount = '0';
                 $row->serial = '';
                 $options = $this->sales_model->getProductOptions($row->id, $warehouse_id);
-				$group_price = $this->sales_model->getProductPriceGroup($row->id);
-				$expdates = $this->sales_model->getProductExpireDate($row->id, $warehouse_id);
-				
+                $group_price = $this->sales_model->getProductPriceGroup($row->id);
+                $group_prices = $this->sales_model->getProductPriceGroup($row->id, $customer->price_group_id);
+                $all_group_prices = $this->sales_model->getProductPriceGroup($row->id);
+                $row->price_id = 0;
+
                 if ($options) {
                     $opt = $options[count($options)-1];
                     if (!$option) {
@@ -2880,42 +2881,91 @@ class Sale_order extends MY_Controller
                     $opt->price = 0;
                 }
                 $row->option = $option;
-				if($expiry_status = 1){
-					$row->expdate = $expdates[0]->id;
-				}
                 $pis = $this->sales_model->getPurchasedItems($row->id, $warehouse_id, $row->option);
                 if($pis){
                     foreach ($pis as $pi) {
-                        $row->quantity += $pi->quantity_balance;
+                        // $row->quantity += $pi->quantity_balance;
                     }
                 }
+                $test = $this->sales_model->getWP2($row->id, $warehouse_id);
+                $row->quantity = $test->quantity;
                 if ($options) {
                     $option_quantity = 0;
                     foreach ($options as $option) {
                         $pis = $this->sales_model->getPurchasedItems($row->id, $warehouse_id, $row->option);
+
                         if($pis){
                             foreach ($pis as $pi) {
-                                $option_quantity += $pi->quantity_balance;
+                                //$option_quantity += $pi->quantity_balance;
                             }
                         }
                         if($option->quantity > $option_quantity) {
-                            $option->quantity = $option_quantity;
+                            // $option->quantity = $option_quantity;
+                        }
+                        //$option->quantity = $test->quantity;
+                    }
+                }
+
+                $setting = $this->sales_model->getSettings();
+
+                if ($row->subcategory_id) {
+                    $percent = $this->sales_model->getCustomerMakup($customer->customer_group_id, $row->id, 1);
+                } else {
+                    $percent = $this->sales_model->getCustomerMakup($customer->customer_group_id, $row->id, 0);
+                }
+
+                if ($opt->price != 0) {
+                    if ($customer_group->makeup_cost == 1 && $percent != "") {
+
+                        if ($setting->attributes == 1) {
+                            if (isset($percent->percent)) {
+                                $row->price = ($row->cost * $opt->qty_unit) + ((($row->cost * $opt->qty_unit) * (isset($percent->percent) ? $percent->percent : 0)) / 100);
+                            } else {
+                                $row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+                            }
+                        }
+                    } else {
+
+                        if ($setting->attributes == 1) {
+                            $row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
+                        }
+                    }
+                } else {
+
+                    if ($customer_group->makeup_cost == 1 && $percent != "") {
+                        if ($setting->attributes == 1) {
+                            if (isset($percent->percent)) {
+                                $row->price = $row->cost + (($row->cost * (isset($percent->percent) ? $percent->percent : 0)) / 100);
+                            } else {
+                                $row->price = $row->price + (($row->price * $customer_group->percent) / 100);
+                            }
+                        }
+                    } else {
+
+                        if ($setting->attributes == 1) {
+                            $row->price = $row->price + (($row->price * $customer_group->percent) / 100);
                         }
                     }
                 }
-                if ($opt->price != 0) {
-					if($customer_group->makeup_cost == 1){
-						$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
-					}else{
-						$row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
-					}
+
+                if ($group_prices) {
+                    $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+                    $row->price_id = $group_prices[0]->id ? $group_prices[0]->id : 0;
+                    $row->price = $group_prices[0]->price ? $group_prices[0]->price : 0;
+
+                    if ($customer_group->makeup_cost == 1) {
+                        //$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
+                        $row->price = $row->cost + (($row->cost * (isset($percent->percent) ? $percent->percent : 0)) / 100);
+
+                    } else {
+                        //$row->price = $group_prices[0]->price;
+                        $row->price = $group_prices[0]->price + (($group_prices[0]->price * $customer_group->percent) / 100);
+                    }
                 } else {
-					if($customer_group->makeup_cost == 1){
-						$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
-					}else{
-						$row->price = $row->price + (($row->price * $customer_group->percent) / 100);
-					}
+                    $row->price_id = 0;
                 }
+
+                $row->rate_item_cur = (isset($curr_by_item->rate) ? $curr_by_item->rate : 0);
                 $row->real_unit_price = $row->price;
                 $combo_items = FALSE;
 				$row->piece           = 0;
