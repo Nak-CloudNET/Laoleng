@@ -822,7 +822,7 @@ $('#slpayment_term').focus(function () {
 	if (!is_numeric($(this).val())) {
 		$(this).val(old_payment_term);
 		bootbox.alert(lang.unexpected_value);
-		return;
+
 	} else {
 		localStorage.setItem('slpayment_term', new_payment_term);
 		$('#slpayment_term').val(new_payment_term);
@@ -999,7 +999,7 @@ $('#slwarehouse').change(function (e) {
 		$('#sltax2').change(function () {
 			localStorage.setItem('sltax2', $(this).val());
 			loadItems();
-			return;
+
 		});
 	}
 
@@ -1013,12 +1013,12 @@ $('#slwarehouse').change(function (e) {
 			localStorage.removeItem('sldiscount');
 			localStorage.setItem('sldiscount', new_discount);
 			loadItems();
-			return;
-		} else {
+
+        } else {
 			$(this).val(old_sldiscount);
 			bootbox.alert(lang.unexpected_value);
-			return;
-		}
+
+        }
 
 	});
 
@@ -1037,8 +1037,8 @@ $('#slwarehouse').change(function (e) {
 		if(sloitems.hasOwnProperty(item_id)) { } else {
 			localStorage.setItem('sloitems', JSON.stringify(sloitems));
 			loadItems();
-			return;
-		}
+
+        }
 		
 		/*
 		var row = $(this).closest('tr');
@@ -1348,8 +1348,8 @@ $('#slwarehouse').change(function (e) {
 		$('#prModal').modal('hide');
 
 		loadItems();
-		return;
-	});
+
+     });
 
 	/* -----------------------
 	 * Product option change
@@ -1514,7 +1514,7 @@ $('#slwarehouse').change(function (e) {
 			return false;
 		}
 
-		var gc_data = new Array();
+         var gc_data = [];
 		gc_data[0] = gccode;
 		gc_data[1] = gcvalue;
 		gc_data[2] = gccustomer;
@@ -2163,7 +2163,7 @@ function loadItems() {
 			} else if(item_type == 'standard' && item_qty > item_qoh) {
 				
 				$('#row_' + row_no).addClass('danger');
-				if(site.settings.overselling != 1) { $('#add_sale, #edit_sale').attr('disabled', true); }
+                //if(site.settings.overselling != 1) { $('#add_sale, #edit_sale').attr('disabled', true); }
 			} else if (item_type == 'combo') {
 				
 				if(combo_items === false) {
