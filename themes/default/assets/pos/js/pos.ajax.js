@@ -271,7 +271,7 @@ if (site.settings.tax2 != 0) {
 	$('#postax2').change(function () {
 		localStorage.setItem('postax2', $(this).val());
 		loadItems();
-		return;
+
 	});
 }
 
@@ -285,11 +285,11 @@ $('#posdiscount').focus(function () {
 		localStorage.removeItem('posdiscount');
 		localStorage.setItem('posdiscount', new_discount);
 		loadItems();
-		return;
+
 	} else {
 		$(this).val(old_posdiscount);
 		bootbox.alert(lang.unexpected_value);
-		return;
+
 	}
 
 });
@@ -421,8 +421,8 @@ $('#posdiscount').focus(function () {
 	 		} else {
 	 			item_discount = parseFloat(ds/qty);
 	 		}
-			
-			net_price = net_price  - item_discount
+
+            net_price = net_price - item_discount;
 
 	 		var pr_tax = item.row.tax_rate, pr_tax_val = 0;
  		    if (pr_tax !== null && pr_tax != 0) {
@@ -691,8 +691,8 @@ $('#posdiscount').focus(function () {
 		 
 		$('#prModal').modal('hide');
 		loadItems();
-		return;
-	});
+
+    });
 
 	/* -----------------------
 	 * Product option change
@@ -850,7 +850,7 @@ $('#posdiscount').focus(function () {
 	 		return false;
 	 	}
 
-	 	var gc_data = new Array();
+        var gc_data = [];
 	 	gc_data[0] = gccode;
 	 	gc_data[1] = gcvalue;
 	 	gc_data[2] = gccustomer;
@@ -1537,7 +1537,8 @@ function loadItems() {
 		$('#gtotal').text(formatMoney(gtotal));
 		
 		var gtotal_kh = parseFloat(gtotal * kh_rate );
-		$("#gtotal_kh").text('(៛ '+formatMoney(parseFloat(gtotal_kh).toFixed(0)) + ')');
+
+        $("#gtotal_kh").text('(៛ '+formatMoney(parseFloat(gtotal_kh).toFixed(0)) + ')');
 		
 		if(java_applet == 1) {
 			bill_data += "\n"+ printLine(lang_total+': '+ formatMoney(total)) +"\n";
@@ -1854,8 +1855,7 @@ function floorFigure(figure, decimals){
         decimals = 2;
     }
     return (Math.floor(figure * 100) / 100).toFixed(decimals);
-};
-
+}
 function read_card() {
 	$('.swipe').keypress( function (e) {
 		e.preventDefault();
