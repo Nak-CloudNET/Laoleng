@@ -3197,7 +3197,6 @@ class Sale_order extends MY_Controller
 
     function delivery_invoice($id = NULL)
     {
-        
         $this->erp->checkPermissions('add', true, 'sales');
 
         if ($this->input->get('id')) {
