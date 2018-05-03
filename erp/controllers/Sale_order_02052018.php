@@ -2695,82 +2695,58 @@ class Sale_order extends MY_Controller
                 $row->discount = '0';
                 $row->serial = '';
                 $options = $this->sales_model->getProductOptions($row->id, $warehouse_id);
-                $group_prices = $this->sales_model->getProductPriceGroupId($row->id, $customer->price_group_id);
-                $all_group_prices = $this->sales_model->getProductPriceGroup($row->id);
-                //$this->erp->print_arrays($group_prices,$all_group_prices);
-                
-                if($expiry_status == 1) {
-                    $expdates = $this->sales_model->getProductExpireDate($row->id, $warehouse_id);
-                }else{
-                    $expdates = NULL;
-                }
-                
-                $w_piece = $this->sales_model->getProductVariantByOptionID($row->id);
-                $row->price_id = 0;
-                
+				$group_price = $this->sales_model->getProductPriceGroup($row->id);
+				$group_prices = $this->sales_model->getProductPriceGroup($row->id, $customer->price_group_id);
+				$all_group_prices = $this->sales_model->getProductPriceGroup($row->id);
+				$row->price_id = 0;
+			
                 if ($options) {
                     $opt = $options[count($options)-1];
                     if (!$option) {
                         $option = $opt->id;
-                        $optqty = $opt->qty_unit;
                     }
                 } else {
                     $opt = json_decode('{}');
                     $opt->price = 0;
                 }
                 $row->option = $option;
-                $row->qty_unit = $optqty;
-                
-                if($expiry_status == 1 && $expdates != NULL){
-                    $row->expdate = $expdates[0]->id;
-                }else{
-                    $row->expdate = NULL;
-                }
-                
                 $pis = $this->sales_model->getPurchasedItems($row->id, $warehouse_id, $row->option);
                 if($pis){
                     foreach ($pis as $pi) {
-                      //  $row->quantity += $pi->quantity_balance;
+                       // $row->quantity += $pi->quantity_balance;
                     }
                 }
-                $test = $this->sales_model->getWP2($row->id, $warehouse_id);
-                $row->quantity = $test->quantity;
+				$test = $this->sales_model->getWP2($row->id, $warehouse_id);
+				$row->quantity = $test->quantity;
                 if ($options) {
                     $option_quantity = 0;
                     foreach ($options as $option) {
                         $pis = $this->sales_model->getPurchasedItems($row->id, $warehouse_id, $row->option);
+						
                         if($pis){
                             foreach ($pis as $pi) {
                                 //$option_quantity += $pi->quantity_balance;
                             }
-                            
                         }
                         if($option->quantity > $option_quantity) {
-                         //$option->quantity = $option_quantity; 
+                           // $option->quantity = $option_quantity;
                         }
-                        //$option->quantity = $test->quantity;
-                        
-                        if($customer_group->makeup_cost == 1){
-                            $option->price = $option->price  + (($option->price * $customer_group->percent) / 100);
-                        }
-                        
+						//$option->quantity = $test->quantity;
                     }
-                    
                 }
 				
 				$setting = $this->sales_model->getSettings();
-                
-                if($row->subcategory_id)
-                {
-                    $percent = $this->sales_model->getCustomerMakup($customer->customer_group_id,$row->id,1);
-                    
-                }else{
-                    $percent = $this->sales_model->getCustomerMakup($customer->customer_group_id,$row->id,0);
-                }
-                
+				
+				if($row->subcategory_id)
+				{
+					$percent = $this->sales_model->getCustomerMakup($customer->customer_group_id,$row->id,1);
+				}else{
+					$percent = $this->sales_model->getCustomerMakup($customer->customer_group_id,$row->id,0);
+				}
+
                 if ($opt->price != 0) {
                     if($customer_group->makeup_cost == 1 && $percent!=""){
-                        
+
                         if($setting->attributes==1)
                         {
                             if(isset($percent->percent)) {
@@ -2780,14 +2756,14 @@ class Sale_order extends MY_Controller
                             }
                         }
                     }else{
-                        
+
                         if($setting->attributes==1)
                         {
                             $row->price = $opt->price + (($opt->price * $customer_group->percent) / 100);
                         }
                     }
-                } else { 
-                    
+                } else {
+
                     if($customer_group->makeup_cost == 1 && $percent!=""){
                         if($setting->attributes==1)
                         {
@@ -2798,32 +2774,31 @@ class Sale_order extends MY_Controller
                             }
                         }
                     }else{
-                        
+
                         if($setting->attributes==1)
                         {
                             $row->price = $row->price + (($row->price * $customer_group->percent) / 100);
                         }
                     }
                 }
-                
+
                 if($group_prices)
                 {
-                   $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
-                   $row->price_id = $group_prices[0]->id ? $group_prices[0]->id : 0;
-                   $row->price = $group_prices[0]->price ? $group_prices[0]->price : 0;
-                   
-                   if($customer_group->makeup_cost == 1){
+                    $curr_by_item = $this->site->getCurrencyByCode($group_prices[0]->currency_code);
+                    $row->price_id = $group_prices[0]->id ? $group_prices[0]->id : 0;
+                    $row->price = $group_prices[0]->price ? $group_prices[0]->price : 0;
+
+                    if($customer_group->makeup_cost == 1){
                         //$row->price = $row->cost + (($row->cost * $customer_group->percent) / 100);
                         $row->price = $row->cost + (($row->cost * (isset($percent->percent)?$percent->percent:0)) / 100);
 
-                   }else{
-                       //$row->price = $group_prices[0]->price;
+                    }else{
+                        //$row->price = $group_prices[0]->price;
                         $row->price = $group_prices[0]->price + (($group_prices[0]->price * $customer_group->percent) / 100);
                     }
                 }else{
                     $row->price_id = 0;
                 }
-
 
 				$row->rate_item_cur   = (isset($curr_by_item->rate)?$curr_by_item->rate:0);
 				
@@ -2891,42 +2866,25 @@ class Sale_order extends MY_Controller
                 $row->discount = '0';
                 $row->serial = '';
                 $options = $this->sales_model->getProductOptions($row->id, $warehouse_id);
-                $group_prices = $this->sales_model->getProductPriceGroupId($row->id, $customer->price_group_id);
+                $group_price = $this->sales_model->getProductPriceGroup($row->id);
+                $group_prices = $this->sales_model->getProductPriceGroup($row->id, $customer->price_group_id);
                 $all_group_prices = $this->sales_model->getProductPriceGroup($row->id);
-                //$this->erp->print_arrays($group_prices,$all_group_prices);
-                
-                if($expiry_status == 1) {
-                    $expdates = $this->sales_model->getProductExpireDate($row->id, $warehouse_id);
-                }else{
-                    $expdates = NULL;
-                }
-                
-                $w_piece = $this->sales_model->getProductVariantByOptionID($row->id);
                 $row->price_id = 0;
-                
+
                 if ($options) {
                     $opt = $options[count($options)-1];
                     if (!$option) {
                         $option = $opt->id;
-                        $optqty = $opt->qty_unit;
                     }
                 } else {
                     $opt = json_decode('{}');
                     $opt->price = 0;
                 }
                 $row->option = $option;
-                $row->qty_unit = $optqty;
-                
-                if($expiry_status == 1 && $expdates != NULL){
-                    $row->expdate = $expdates[0]->id;
-                }else{
-                    $row->expdate = NULL;
-                }
-                
                 $pis = $this->sales_model->getPurchasedItems($row->id, $warehouse_id, $row->option);
                 if($pis){
                     foreach ($pis as $pi) {
-                      //  $row->quantity += $pi->quantity_balance;
+                        // $row->quantity += $pi->quantity_balance;
                     }
                 }
                 $test = $this->sales_model->getWP2($row->id, $warehouse_id);
@@ -2935,23 +2893,17 @@ class Sale_order extends MY_Controller
                     $option_quantity = 0;
                     foreach ($options as $option) {
                         $pis = $this->sales_model->getPurchasedItems($row->id, $warehouse_id, $row->option);
+
                         if($pis){
                             foreach ($pis as $pi) {
                                 //$option_quantity += $pi->quantity_balance;
                             }
-                            
                         }
                         if($option->quantity > $option_quantity) {
-                         //$option->quantity = $option_quantity; 
+                            // $option->quantity = $option_quantity;
                         }
                         //$option->quantity = $test->quantity;
-                        
-                        if($customer_group->makeup_cost == 1){
-                            $option->price = $option->price  + (($option->price * $customer_group->percent) / 100);
-                        }
-                        
                     }
-                    
                 }
 
                 $setting = $this->sales_model->getSettings();
