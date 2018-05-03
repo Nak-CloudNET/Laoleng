@@ -2083,28 +2083,6 @@ function loadItems() {
 			if(site.settings.show_code == 0) {
 				tr_html += '<td><input name="digital_id[]" type="hidden" class="did" value="' + digital_id + '"><input name="product_id[]" type="hidden" class="rid" value="' + product_id + '"><input name="product_type[]" type="hidden" class="rtype" value="' + item_type + '"><input name="product_code[]" type="hidden" class="rcode" value="' + item_code + '"><input name="product_name[]" type="hidden" class="rname" value="' + item_name + '"><input name="piece[]" type="hidden" class="piece" value="' + piece + '"><input name="wpiece[]" type="hidden" class="wpiece" value="' + wpiece + '"><input name="product_option[]" type="hidden" class="roption" value="' + item_option + '"><input name="group_price_id[]" type="hidden" class="group_price_id" value="' + group_price_id + '"><input name="product_note[]" type="hidden" class="rnote" value="' + pn + '"><span class="sname" id="name_' + row_no + '">' + ((item_promotion == 1 && (current_date >= start_date && current_date <= end_date)) ? '<i class="fa fa-check-circle"></i> ' : '') + (digital_id?digital_name:item_name) +(sel_opt != '' ? ' ('+sel_opt+')' : '') + (pn != '' ? ' (<span id="get_not">' + pn + '</span>)' : '') + '</span> <i class="pull-right fa fa-edit tip pointer edit" id="' + row_no + '" data-item="' + item_id + '" title="Edit" style="cursor:pointer;"></i></td>';
 			}
-			/*
-			if(site.settings.product_serial == 1){
-				if(sep == ""){
-					//$('#add_sale').removeAttr('disabled');
-					$('#before_sub').removeAttr('disabled');
-				}else{
-					if(item_serial == ''){
-						//$('#add_sale').attr('disabled', 'disabled');
-						$('#before_sub').attr('disabled', 'disabled');
-					}else{
-						if(item_serial == sep){
-							//$('#add_sale').removeAttr('disabled');
-							$('#before_sub').removeAttr('disabled');
-						}
-						else{
-							alert('wrong serial number');
-							$('#before_sub').attr('disabled', 'disabled');
-						}
-					}
-				}
-			}
-			*/
 			if (site.settings.product_serial == 1) {
 				if(item_type == 'service'){
 					tr_html += '<td class="text-right"></td>';
