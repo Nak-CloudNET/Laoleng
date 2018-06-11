@@ -11020,17 +11020,17 @@ class Reports extends MY_Controller
 		
         $this->page_construct('reports/income_statement', $meta, $this->data);
 	}
-	
-	function income_statement_detail($start_date = NULL, $end_date = NULL, $pdf = NULL, $xls = NULL, $biller_id = NULL)
+
+    function income_statement_detail($start_date = NULL, $end_date = NULL, $pdf = NULL, $xls = NULL, $biller_id = NULL)
     {
         $this->erp->checkPermissions('income_statement_detail',NULL,'account_report');
 
-		$no_search_date = true;
-		if($start_date && $end_date){
-			$no_search_date = false;
-		}
-		
-		if (!$start_date) {
+        $no_search_date = true;
+        if ($start_date && $end_date) {
+            $no_search_date = false;
+        }
+
+        if (!$start_date) {
             $start = $this->db->escape(date('Y-m') . '-1');
             $start_date = date('Y-m') . '-1';
         } else {
@@ -11042,223 +11042,959 @@ class Reports extends MY_Controller
         } else {
             $end = $this->db->escape(urldecode($end_date));
         }
-		$user = $this->site->getUser();
-		if($biller_id != NULL){
-			$this->data['biller_id_no_sep'] = $biller_id;
-			$biller_sep = explode('-', $biller_id);
-			
-			$bills = '';
-			for($i=0; $i < count($biller_sep); $i++){
-				$bills .= $biller_sep[$i] . ',';
-			}
-			$biller_id =  rtrim($bills, ',');
-			$this->data['biller_id'] = $biller_id;
-		}else{
-			if($user->biller_id){
-				$this->data['biller_id'] = $user->biller_id;
-				$biller_id = $user->biller_id;
-			}else{
-				$this->data['biller_id'] = "";
-			}
-		}
-		if(!$this->Owner && !$this->Admin) {
-			if($user->biller_id){
-				$this->data['billers'] = $this->site->getCompanyByArray($user->biller_id);
-			}else{
-				$this->data['billers'] = $this->site->getAllCompanies('biller');
-			}
-		}else{
-			$this->data['billers'] = $this->site->getAllCompanies('biller');
-		}
-		
-		$this->data['start'] = urldecode($start_date);
+        $user = $this->site->getUser();
+        if ($biller_id != NULL) {
+            $this->data['biller_id_no_sep'] = $biller_id;
+            $biller_sep = explode('-', $biller_id);
+
+            $bills = '';
+            for ($i = 0; $i < count($biller_sep); $i++) {
+                $bills .= $biller_sep[$i] . ',';
+            }
+            $biller_id = rtrim($bills, ',');
+            $this->data['biller_id'] = $biller_id;
+        } else {
+            if ($user->biller_id) {
+                $this->data['biller_id'] = $user->biller_id;
+                $biller_id = $user->biller_id;
+            } else {
+                $this->data['biller_id'] = "";
+            }
+        }
+        if (!$this->Owner && !$this->Admin) {
+            if ($user->biller_id) {
+                $billers = $this->site->getCompanyByArray($user->biller_id);
+                $this->data['billers'] = $this->site->getCompanyByArray(json_decode($user->biller_id));
+            } else {
+                $billers = $this->site->getAllCompanies('biller');
+                $this->data['billers'] = $this->site->getAllCompanies('biller');
+            }
+        } else {
+            $billers = $this->site->getAllCompanies('biller', $biller_id, $xls);
+            $this->data['billers'] = $this->site->getAllCompanies('biller');
+        }
+
+        $this->data['billers'] = $billers;
+        $this->data['start'] = urldecode($start_date);
         $this->data['end'] = urldecode($end_date);
-		
+
         $totalBeforeAyear = date('Y', strtotime($this->data['start'])) - 1;
-		
+
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
-      
+
         $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => '#', 'page' => lang('income_statement_detail')));
         $meta = array('page_title' => lang('income_statement_detail'), 'bc' => $bc);
-		
-		$from_date = date('Y-m-d H:m',strtotime(urldecode($start_date)));//'2014-08-01';
-		$to_date = date('Y-m-d H:m',strtotime(urldecode($end_date. ' +1 day')));//'2015-09-01';
-		
-		$this->data['from_date'] = $from_date;
-		$this->data['to_date'] = $to_date;
-		
-		$acc_setting = $this->site->get_Acc_setting();
-		$this->data['acc_setting'] = $acc_setting;
 
-		$dataIncome = $this->accounts_model->getStatementByDate('40,70',$from_date,$to_date,$biller_id);
-		$IncomeData = $this->accounts_model->getStatementByDate('40,70',$from_date,$to_date,$biller_id);
-		$dataCost = $this->accounts_model->getStatementByDate('50',$from_date,$to_date,$biller_id);
-		
-		$income_couple = $this->accounts_model->getStatementDetailByAccCode($acc_setting->default_receivable, '40,70,10',$from_date,$to_date,$biller_id);
-		
-		$cost_couple = $this->accounts_model->getStatementDetailByAccCode($acc_setting->default_stock, '50',$from_date,$to_date,$biller_id);
-		$dataExpense = $this->accounts_model->getStatementByDate('60,80,90',$from_date,$to_date,$biller_id);
+        $from_date = date('Y-m-d H:m', strtotime(urldecode($start_date)));//'2014-08-01';
+        $to_date = date('Y-m-d H:m', strtotime(urldecode($end_date . ' +1 day')));//'2015-09-01';
 
-		$this->data['from_date'] = $from_date;
-		$this->data['to_date'] = $to_date;
+        $this->data['from_date'] = $from_date;
+        $this->data['to_date'] = $to_date;
+
+        $acc_setting = $this->site->get_Acc_setting();
+        $this->data['acc_setting'] = $acc_setting;
+
+        $dataIncome = $this->accounts_model->getStatementByDate('40,70', $from_date, $to_date, json_decode($biller_id));
+        $IncomeData = $this->accounts_model->getStatementByDate('40,70', $from_date, $to_date, json_decode($biller_id));
+        $dataCost = $this->accounts_model->getStatementByDate('50', $from_date, $to_date, json_decode($biller_id));
+
+        $income_couple = $this->accounts_model->getStatementDetailByAccCode($acc_setting->default_receivable, '40,70,10', $from_date, $to_date, json_decode($biller_id));
+
+        $cost_couple = $this->accounts_model->getStatementDetailByAccCode($acc_setting->default_stock, '50', $from_date, $to_date, json_decode($biller_id));
+        $dataExpense = $this->accounts_model->getStatementByDate('60,80,90', $from_date, $to_date, json_decode($biller_id));
+
+        $this->data['from_date'] = $from_date;
+        $this->data['to_date'] = $to_date;
         $this->data['totalBeforeAyear'] = $totalBeforeAyear;
-		
-		
-		$this->data['dataIncome'] = $dataIncome;
-		$this->data['idetails'] = $income_couple->result();
-		
-		$this->data['dataCost'] = $dataCost;
-		$this->data['cdetail'] = $cost_couple->result();
-		//$this->erp->print_arrays($cost_couple->resutt());
-		
-		$this->data['dataExpense'] = $dataExpense;
-		
-		if ($pdf) {
+
+
+        $this->data['dataIncome'] = $dataIncome;
+        $this->data['idetails'] = $income_couple->result();
+
+        $this->data['dataCost'] = $dataCost;
+        $this->data['cdetail'] = $cost_couple->result();
+        //$this->erp->print_arrays($cost_couple->resutt());
+
+        $this->data['dataExpense'] = $dataExpense;
+
+        if ($pdf) {
             $html = $this->load->view($this->theme . 'reports/income_statement', $this->data, true);
             $name = lang("income_statement") . "_" . date('Y_m_d_H_i_s') . ".pdf";
             $html = str_replace('<p class="introtext">' . lang("reports_income_text") . '</p>', '', $html);
             $this->erp->generate_pdf($html, $name, null, null, null, null, null, 'L');
         }
-		
-		if($xls){
-			$styleArray = array(
-				'font'  => array(
-					'bold'  => true,
-					'color' => array('rgb' => '000000'),
-					'size'  => 10,
-					'name'  => 'Verdana'
-				)
-			);
-			$bold = array(
-				'font' => array(
-					'bold' => true
-				)
-			);
-			$this->load->library('excel');
-			$this->excel->setActiveSheetIndex(0);
-			$this->excel->getActiveSheet()->getStyle('A1:E1')->applyFromArray($styleArray);
-			$this->excel->getActiveSheet()->setTitle(lang('Income Statement'));
-			$this->excel->getActiveSheet()->SetCellValue('A1', lang('account_name'));
-			$this->excel->getActiveSheet()->SetCellValue('B1', lang('amount'));
-			$this->excel->getActiveSheet()->SetCellValue('C1', lang('total'));
-			//$this->excel->getActiveSheet()->SetCellValue('D1', lang("total") . ' ('.$totalBeforeAyear.')');
-			
-			$this->excel->getActiveSheet()->getStyle('A2:B2')->applyFromArray($bold);
-			$this->excel->getActiveSheet()->mergeCells('A2:B2')->setCellValue('A2' , lang('income'));
-			$this->excel->getActiveSheet()->mergeCells('C2:D2');
-			$total_income = 0;
-			$totalBeforeAyear_income = 0;
-			$income = 3;
-			foreach($dataIncome->result() as $row){
-				$total_income += $row->amount;
 
-				$query = $this->db->query("SELECT
-					sum(erp_gl_trans.amount) AS amount
-				FROM
-					erp_gl_trans
-				WHERE
-					DATE(tran_date) = '$totalBeforeAyear' AND account_code = '" . $row->account_code . "';");
-				$totalBeforeAyearRows = $query->row();
-				$totalBeforeAyear_income += $totalBeforeAyearRows->amount;
-				$this->excel->getActiveSheet()->SetCellValue('A' . $income, $row->account_code.' - '.$row->accountname);
-				$this->excel->getActiveSheet()->SetCellValue('B' . $income, number_format(abs($row->amount),2));
-				$this->excel->getActiveSheet()->SetCellValue('C' . $income, '');
-				//$this->excel->getActiveSheet()->SetCellValue('D' . $income, number_format(abs($totalBeforeAyearRows->amount),2));
-				$income++;
-			}
-			
-			$this->excel->getActiveSheet()->getStyle('A3:A'.($income-1))->getAlignment()->setIndent(2);	
-			$this->excel->getActiveSheet()->mergeCells('A'.$income.':B'.$income)->setCellValue('A'.$income , lang('total_income'));
-			$this->excel->getActiveSheet()->SetCellValue('C' . $income, number_format((-1)*($total_income),2));
-			//$this->excel->getActiveSheet()->SetCellValue('D' . $income, number_format((-1)*($totalBeforeAyear_income),2));
-			
-			$this->excel->getActiveSheet()->getStyle('A'.($income + 1).':B'.($income +1))->applyFromArray($bold);
-			$this->excel->getActiveSheet()->mergeCells('A'.($income + 1).':B'.($income +1))->setCellValue('A'. ($income + 1) , lang('cost'));
-			//$this->excel->getActiveSheet()->mergeCells('C'.($income + 1).':D'.($income +1));
-			
-			$total_cost = 0;
-			$totalBeforeAyear_cost = 0;
-			$cost = $income + 2;
-			foreach($dataCost->result() as $rowcost){
-				$total_cost += $rowcost->amount;
+        if ($xls) {
+            $styleArray = array(
+                'font' => array(
+                    'bold' => true,
+                    'color' => array('rgb' => '000000'),
+                    'size' => 11,
+                    'name' => 'Verdana'
+                )
+            );
+            $bold = array(
+                'font' => array(
+                    'bold' => true
+                )
+            );
+            $this->load->library('excel');
+            $this->excel->setActiveSheetIndex(0);
+            $this->excel->getActiveSheet()->getStyle('A1:E1')->applyFromArray($styleArray);
+            $this->excel->getActiveSheet()->setTitle(lang('Income Statement Detail'));
+            $this->excel->getActiveSheet()->SetCellValue('A1', lang('type'));
+            $this->excel->getActiveSheet()->SetCellValue('B1', lang('date'));
+            $this->excel->getActiveSheet()->SetCellValue('C1', lang('invoice_reference'));
+            $this->excel->getActiveSheet()->SetCellValue('D1', lang('name'));
+            $this->excel->getActiveSheet()->SetCellValue('E1', lang('description'));
 
-				$query = $this->db->query("SELECT
-					sum(erp_gl_trans.amount) AS amount
-				FROM
-					erp_gl_trans
-				WHERE
-					DATE(tran_date) = '$totalBeforeAyear' AND account_code = '" . $rowcost->account_code . "';");
-				$totalBeforeAyearRows = $query->row();
-				$totalBeforeAyear_cost += $totalBeforeAyearRows->amount;
-				$this->excel->getActiveSheet()->SetCellValue('A' . $cost, $rowcost->account_code.' - '.$rowcost->accountname);
-				$this->excel->getActiveSheet()->SetCellValue('B' . $cost, number_format(abs($rowcost->amount),2));
-				$this->excel->getActiveSheet()->SetCellValue('C' . $cost, '');
-				//$this->excel->getActiveSheet()->SetCellValue('D' . $cost, number_format(abs($totalBeforeAyearRows->amount),2));
-				$cost++;
-			}
+            $alphabet0 = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z');
+            $alphabet = array('F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z');
+            $alphabet1 = array('F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1', 'M1', 'N1', 'O1', 'P1', 'Q1', 'R1', 'S1', 'T1', 'U1', 'V1', 'W1', 'X1', 'Y1', 'Z1');
 
-			$this->excel->getActiveSheet()->getStyle('A'.($income+2).':A'.($cost-1))->getAlignment()->setIndent(2);	
-			$this->excel->getActiveSheet()->mergeCells('A'.$cost.':B'.$cost)->setCellValue('A'.$cost , lang('total_cost'));
-			$this->excel->getActiveSheet()->SetCellValue('C' . $cost, number_format((-1)*$total_cost,2));
-			//$this->excel->getActiveSheet()->SetCellValue('D' . $cost, number_format((-1)*$totalBeforeAyear_cost,2));
+            $num_col = 6;
+            $tBiller = 0;
+            $new_billers = array();
+            foreach ($billers as $b1) {
+                if ($this->uri->segment(7)) {
+                    $biller_sep = explode('-', $this->uri->segment(7));
+                    for ($i = 0; $i < count($biller_sep); $i++) {
+                        if ($biller_sep[$i] == $b1->id) {
+                            $this->excel->getActiveSheet()->SetCellValue($alphabet1[$tBiller], $b1->company);
+                            $this->excel->getActiveSheet()->getColumnDimension($alphabet[$tBiller])->setWidth(20);
+                            $new_billers[] = array('id' => $b1->id);
+                        }
+                        $tBiller++;
+                        $j = $tBiller;
+                    }
+                } else {
+                    $new_billers = $billers;
+                    $this->excel->getActiveSheet()->SetCellValue($alphabet1[$tBiller], $b1->company);
+                    $this->excel->getActiveSheet()->getColumnDimension($alphabet[$tBiller])->setWidth(20);
+                    $tBiller++;
+                    $j = $tBiller;
+                }
+                $num_col++;
+            }
 
-			$this->excel->getActiveSheet()->getStyle('C'.($cost + 1).':D'.($cost + 1))->applyFromArray($bold);
-			$this->excel->getActiveSheet()->mergeCells('A'.($cost + 1).':B'.($cost + 1))->setCellValue('A'.($cost + 1) , lang('gross_margin'));
-			$this->excel->getActiveSheet()->SetCellValue('C' . ($cost +1), number_format((-1)*($total_cost+$total_income),2));
-			//$this->excel->getActiveSheet()->SetCellValue('D' . ($cost +1), number_format((-1)*($totalBeforeAyear_income+$totalBeforeAyear_cost),2));
-			
-			$this->excel->getActiveSheet()->getStyle('A'.($cost + 2).':B'.($cost + 2))->applyFromArray($bold);
-			$this->excel->getActiveSheet()->mergeCells('A'.($cost + 2).':B'.($cost + 2))->setCellValue('A'. ($cost + 2) , lang('operating_expense'));
-			//$this->excel->getActiveSheet()->mergeCells('C'.($cost + 2).':D'.($cost + 2));
-			
-			$total_expense = 0;
-			$totalBeforeAyear_expense = 0;
-			$expene = $cost + 3;
-			foreach($dataExpense->result() as $row){
-				$total_expense += $row->amount;
+            if ($this->uri->segment(7)) {
+                $count_bill = count($new_billers);
+                $col1 = $count_bill + 5;
+            } else {
+                $count_bill = count($new_billers);
+                $col1 = 6;
+            }
 
-				$query = $this->db->query("SELECT
-					sum(erp_gl_trans.amount) AS amount
-				FROM
-					erp_gl_trans
-				WHERE
-					DATE(tran_date) = '$totalBeforeAyear' AND account_code = '" . $row->account_code . "';");
-				$totalBeforeAyearRows = $query->row();
-				$totalBeforeAyear_expense += $totalBeforeAyearRows->amount;
-				$this->excel->getActiveSheet()->SetCellValue('A' . $expene, $row->account_code.' - '.$row->accountname);
-				$this->excel->getActiveSheet()->SetCellValue('B' . $expene, number_format(abs($row->amount),2));
-				$this->excel->getActiveSheet()->SetCellValue('C' . $expene, '');
-				//$this->excel->getActiveSheet()->SetCellValue('D' . $expene, number_format(abs($totalBeforeAyearRows->amount),2));
-			}
-			$this->excel->getActiveSheet()->mergeCells('A'.$expene.':B'.$expene)->setCellValue('A'.$expene , lang('total_expense'));
-			$this->excel->getActiveSheet()->SetCellValue('C' . $expene, number_format((-1)*$total_expense,2));
-			//$this->excel->getActiveSheet()->SetCellValue('D' . $expene, number_format((-1)*$totalBeforeAyear_expense,2));
-			
-			$this->excel->getActiveSheet()->getStyle('A'.($expene + 1).':C'.($expene + 1))->applyFromArray($bold);
-			$this->excel->getActiveSheet()->mergeCells('A'.($expene + 1).':B'.($expene + 1))->setCellValue('A'. ($expene + 1) , lang('profits'));
-			$this->excel->getActiveSheet()->SetCellValue('C' . ($expene + 1), number_format((-1)*$total_income-($total_cost+$total_expense),2));
-			//$this->excel->getActiveSheet()->SetCellValue('D' . ($expene + 1), number_format((-1)*$totalBeforeAyear_income-($totalBeforeAyear_cost+$totalBeforeAyear_expense),2));
-			
-			$this->excel->getActiveSheet()->getColumnDimension('A')->setWidth(40);
-			$this->excel->getActiveSheet()->getColumnDimension('B')->setWidth(20);
-			$this->excel->getActiveSheet()->getColumnDimension('C')->setWidth(20);
-			//$this->excel->getActiveSheet()->getColumnDimension('D')->setWidth(15);
-			$this->excel->getDefaultStyle()->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-			$filename = 'Income_Statement' . date('Y_m_d_H_i_s');
-			if ($xls) {
-				header('Content-Type: application/vnd.ms-excel');
-				header('Content-Disposition: attachment;filename="' . $filename . '.xls"');
-				header('Cache-Control: max-age=0');
+            $this->excel->getActiveSheet()->SetCellValue($alphabet1[$j], lang('total'));
 
-				$objWriter = PHPExcel_IOFactory::createWriter($this->excel, 'Excel5');
-				return $objWriter->save('php://output');
-			}
+            // Header Styles
+            $this->excel->getActiveSheet()->getStyle('A1:' . $alphabet1[$j])->applyFromArray($styleArray);
+            $this->excel->getActiveSheet()->getRowDimension(1)->setRowHeight(25);
+            $this->excel->getActiveSheet()->getColumnDimension($alphabet[$j])->setWidth(20);
+            $this->excel->getActiveSheet()->getStyle('A1:' . $alphabet1[$j])->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $this->excel->getActiveSheet()->getStyle('A1:' . $alphabet1[$j])->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            $this->excel->getActiveSheet()->getStyle('A1:' . $alphabet1[$j])->applyFromArray(
+                array(
+                    'font' => array(
+                        'bold' => true,
+                        'color' => array('rgb' => 'FFFFFF'),
+                        'size' => 11,
+                        'name' => 'Times New Roman'
+                    ),
+                    'fill' => array(
+                        'type' => PHPExcel_Style_Fill::FILL_SOLID,
+                        'color' => array('rgb' => '428BCA')
+                    )
+                )
+            );
 
-			redirect($_SERVER["HTTP_REFERER"]);	
-		}
-		
+
+            $this->excel->getActiveSheet()->SetCellValue('A2', lang('income'));
+            $this->excel->getActiveSheet()->getRowDimension(2)->setRowHeight(20);
+            $this->excel->getActiveSheet()->mergeCells('A2:' . $alphabet[$j] . '2');
+            $this->excel->getActiveSheet()->getStyle('A2')->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $this->excel->getActiveSheet()->getStyle('A2')->getFont()
+                ->setName('Times New Roman')
+                ->setSize(11)
+                ->setBold(true);
+
+            // INCOME
+            $new_row = 3;
+            $total_income_array = array();
+            $total_cost_array = array();
+            $total_op_array = array();
+
+            $sum_total_income = array();
+            $sum_total_cost = array();
+            $sum_total_op = array();
+            $sum_total_gross = array();
+
+            $sum_income_per_acc = array();
+            $sum_cost_per_acc = array();
+            $sum_op_per_acc = array();
+
+            $total_income = 0;
+            $totalBeforeAyear_income = 0;
+            foreach ($dataIncome->result() as $row) {
+                $total_income += $row->amount;
+
+                $query = $this->db->query("SELECT
+                sum(erp_gl_trans.amount) AS amount
+            FROM
+                erp_gl_trans
+            WHERE
+                account_code = '" . $row->account_code . "'
+                AND erp_gl_trans.tran_date BETWEEN '$from_date' AND '$to_date' ;");
+                $totalBeforeAyearRows = $query->row();
+                $totalBeforeAyear_income += $totalBeforeAyearRows->amount;
+
+                $itotal_amount = 0;
+                $incDetails = $this->accounts_model->getBalanceSheetDetailByAccCode($row->account_code, '40,70,10', $from_date, $to_date, json_decode($biller_id));
+
+                if ($incDetails->num_rows() > 0) {
+
+                    $this->excel->getActiveSheet()->SetCellValue('A' . $new_row, $row->account_code . ' - ' . $row->accountname);
+                    $this->excel->getActiveSheet()->mergeCells('A' . $new_row . ':' . $alphabet[$j] . $new_row);
+
+                    foreach ($incDetails->result() as $ide) {
+                        $j3 = 0;
+                        $total_income_array[] = array(
+                            'biller_id' => $ide->biller_id,
+                            'amount' => (-1) * $ide->amount
+                        );
+
+                        $itotal_amount += (-1) * $ide->amount;
+                        $new_row++;
+
+
+                        $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j3] . $new_row, $ide->tran_type);
+                        $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j3 + 1] . $new_row, $ide->tran_date);
+                        $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j3 + 2] . $new_row, $ide->reference_no);
+                        $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j3 + 3] . $new_row, $ide->customer);
+                        $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j3 + 4] . $new_row, $this->erp->decode_html(strip_tags($ide->note)));
+                        $this->excel->getActiveSheet()->getColumnDimension($alphabet0[$j3])->setWidth(30);
+                        $this->excel->getActiveSheet()->getColumnDimension($alphabet0[$j3 + 1])->setWidth(20);
+                        $this->excel->getActiveSheet()->getColumnDimension($alphabet0[$j3 + 2])->setWidth(20);
+                        $this->excel->getActiveSheet()->getColumnDimension($alphabet0[$j3 + 3])->setWidth(20);
+                        $this->excel->getActiveSheet()->getColumnDimension($alphabet0[$j3 + 4])->setWidth(20);
+                        $this->excel->getActiveSheet()->getStyle($alphabet0[$j3] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+                        foreach ($new_billers as $biG) {
+                            $biG_biller = 0;
+                            if ($this->uri->segment(7)) {
+                                $biG_biller = $biG['id'];
+                            } else {
+                                $biG_biller = $biG->id;
+                            }
+
+                            if ($biG_biller == $ide->biller_id) {
+                                $sum_income_per_acc[] = array(
+                                    'biller_id' => $ide->biller_id,
+                                    'amount' => (-1) * ($ide->amount)
+                                );
+                                $ide_display = (-1) * ($ide->amount);
+                                if ($ide_display < 0) {
+                                    $ide_display = '( ' . $this->erp->formatMoney(abs($ide->amount)) . ' )';
+                                } else {
+                                    $ide_display = $this->erp->formatMoney(abs($ide->amount));
+                                }
+                                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j3] . $new_row, $ide_display);
+                            } else {
+                                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j3] . $new_row, $this->erp->formatMoney(0));
+                            }
+
+                            $this->excel->getActiveSheet()->getStyle($alphabet[$j3] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
+                            $j3++;
+                        }
+
+                        $ide_display1 = (-1) * ($ide->amount);
+                        if ($ide_display1 < 0) {
+                            $ide_display1 = '( ' . $this->erp->formatMoney(abs($ide->amount)) . ' )';
+                        } else {
+                            $ide_display1 = $this->erp->formatMoney(abs($ide->amount));
+                        }
+
+                        $this->excel->getActiveSheet()->SetCellValue($alphabet[$j3] . $new_row, $ide_display1);
+                        $this->excel->getActiveSheet()->getStyle($alphabet[$j3] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                    }
+                } else {
+                    $itotal_amount = $row->amount;
+                }
+
+                $new_row++;
+                $this->excel->getActiveSheet()->SetCellValue('A' . $new_row, lang("total"));
+                $this->excel->getActiveSheet()->getRowDimension($new_row)->setRowHeight(20);
+                $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getFont()
+                    ->setName('Times New Roman')
+                    ->setSize(11)
+                    ->setBold(true);
+
+                $j4 = 0;
+                foreach ($new_billers as $bi2) {
+                    $bill_id = 0;
+                    if ($this->uri->segment(7)) {
+                        $bill_id = $bi2['id'];
+                    } else {
+                        $bill_id = $bi2->id;
+                    }
+
+                    $s_total = 0;
+                    foreach ($sum_income_per_acc as $sac) {
+                        if ($bill_id == $sac['biller_id']) {
+                            $s_total += $sac['amount'];
+                        }
+                    }
+                    if ($s_total < 0) {
+                        $s_total = '( ' . $this->erp->formatMoney(abs($s_total)) . ' )';
+                    } else {
+                        $s_total = $this->erp->formatMoney(abs($s_total));
+                    }
+                    $this->excel->getActiveSheet()->SetCellValue($alphabet[$j4] . $new_row, $s_total);
+
+                    $this->excel->getActiveSheet()->getStyle($alphabet[$j4] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                    $this->excel->getActiveSheet()->getStyle($alphabet[$j4] . $new_row)->getFont()
+                        ->setName('Times New Roman')
+                        ->setSize(11)
+                        ->setBold(true);
+
+                    $j4++;
+                }
+
+                $sum_income_per_acc = array();
+                $itotal_display = $itotal_amount;
+                if ($itotal_display < 0) {
+                    $itotal_display = '( ' . $this->erp->formatMoney(abs($itotal_amount)) . ' )';
+                } else {
+                    $itotal_display = $this->erp->formatMoney(abs($itotal_amount));
+                }
+
+                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j4] . $new_row, $itotal_display);
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j4] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j4] . $new_row)->getFont()
+                    ->setName('Times New Roman')
+                    ->setSize(11)
+                    ->setBold(true);
+            }
+
+            // TOTAL INCOME
+            $new_row++;
+            $this->excel->getActiveSheet()->SetCellValue('A' . $new_row, lang("total_income"));
+            $this->excel->getActiveSheet()->getRowDimension($new_row)->setRowHeight(20);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getFont()
+                ->setName('Times New Roman')
+                ->setSize(11)
+                ->setBold(true);
+
+            $j5 = 0;
+            for ($i = 0; $i < count($new_billers); $i++) {
+                $bill_id = 0;
+                if ($this->uri->segment(7)) {
+                    $bill_id = $new_billers[$i]['id'];
+                } else {
+                    $bill_id = $new_billers[$i]->id;
+                }
+                $total_amt_inc = 0;
+                foreach ($total_income_array as $val) {
+                    if ($bill_id == $val['biller_id']) {
+                        $total_amt_inc += $val['amount'];
+                    }
+                }
+                $sum_total_income[] = array(
+                    'biller_id' => $bill_id,
+                    'amount' => $total_amt_inc
+                );
+                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j5] . $new_row, $this->erp->formatMoney(abs($total_amt_inc)));
+
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j5] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j5] . $new_row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border:: BORDER_MEDIUM);
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j5] . $new_row)->getFont()
+                    ->setName('Times New Roman')
+                    ->setSize(11)
+                    ->setBold(true);
+
+                $j5++;
+            }
+
+            $this->excel->getActiveSheet()->SetCellValue($alphabet[$j5] . $new_row, $this->erp->formatMoney((-1) * $total_income));
+
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j5] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j5] . $new_row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border:: BORDER_MEDIUM);
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j5] . $new_row)->getFont()
+                ->setName('Times New Roman')
+                ->setSize(11)
+                ->setBold(true);
+            // END TOTAL INCOME
+
+            // COST
+            $new_row++;
+            $this->excel->getActiveSheet()->SetCellValue('A' . $new_row, lang("cost"));
+            $this->excel->getActiveSheet()->getRowDimension($new_row)->setRowHeight(20);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $this->excel->getActiveSheet()->mergeCells('A' . $new_row . ':' . $alphabet[$j] . $new_row);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getFont()
+                ->setName('Times New Roman')
+                ->setSize(11)
+                ->setBold(true);
+
+            $total_cost = 0;
+            $totalBeforeAyear_cost = 0;
+            foreach ($dataCost->result() as $rowcost) {
+                $total_cost += $rowcost->amount;
+
+                $query = $this->db->query("SELECT
+                    sum(erp_gl_trans.amount) AS amount
+                FROM
+                    erp_gl_trans
+                WHERE
+                    account_code = '" . $rowcost->account_code . "'
+                    AND erp_gl_trans.tran_date BETWEEN '$from_date' AND '$to_date' ;");
+                $totalBeforeAyearRows = $query->row();
+                $totalBeforeAyear_cost += $totalBeforeAyearRows->amount;
+
+                $new_row++;
+                $this->excel->getActiveSheet()->SetCellValue('A' . $new_row, $rowcost->account_code . '-' . $rowcost->accountname);
+
+
+                $ctotal_amount = 0;
+                $cost_couple = $this->accounts_model->getBalanceSheetDetailPurByAccCode($rowcost->account_code, '50', $from_date, $to_date, json_decode($biller_id));
+
+                foreach ($cost_couple->result() as $cde) {
+                    $j6 = 0;
+                    $ctotal_amount += ($cde->amount);
+
+                    $new_row++;
+                    $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j6] . $new_row, $cde->tran_type);
+                    $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j6 + 1] . $new_row, $cde->tran_date);
+                    $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j6 + 2] . $new_row, $cde->reference_no);
+                    $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j6 + 3] . $new_row, $cde->customer);
+                    $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j6 + 4] . $new_row, $cde->note);
+                    $this->excel->getActiveSheet()->getStyle($alphabet0[$j6] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+
+                    $cost_display = $cde->amount;
+                    if ($cost_display < 0) {
+                        $cost_display = '( ' . $this->erp->formatMoney(abs($cde->amount)) . ' )';
+                    } else {
+                        $cost_display = $this->erp->formatMoney(abs($cde->amount));
+                    }
+
+
+                    foreach ($new_billers as $bi2) {
+                        if ($this->uri->segment(7)) {
+                            $sum_cost_per_acc[] = array(
+                                'biller_id' => $cde->biller_id,
+                                'amount' => $cde->amount
+                            );
+                            $total_cost_array[] = array(
+                                'biller_id' => $cde->biller_id,
+                                'amount' => $cde->amount
+                            );
+                            $this->excel->getActiveSheet()->SetCellValue($alphabet[$j6] . $new_row, $cost_display);
+                        } else {
+
+                            if ($bi2->id == $cde->biller_id) {
+                                $sum_cost_per_acc[] = array(
+                                    'biller_id' => $cde->biller_id,
+                                    'amount' => $cde->amount
+                                );
+
+                                $total_cost_array[] = array(
+                                    'biller_id' => $cde->biller_id,
+                                    'amount' => $cde->amount
+                                );
+
+                                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j6] . $new_row, $cost_display);
+
+                            } else {
+                                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j6] . $new_row, $this->erp->formatMoney(0));
+                            }
+                        }
+
+                        $this->excel->getActiveSheet()->getStyle($alphabet[$j6] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
+                        $j6++;
+                    }
+
+                    $this->excel->getActiveSheet()->SetCellValue($alphabet[$j6] . $new_row, $cost_display);
+                    $this->excel->getActiveSheet()->getStyle($alphabet[$j6] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
+                }
+
+                $t_cost_display = $ctotal_amount;
+
+                if ($t_cost_display < 0) {
+                    $t_cost_display = '( ' . $this->erp->formatMoney(abs($ctotal_amount)) . ' )';
+                } else {
+                    $t_cost_display = $this->erp->formatMoney(abs($ctotal_amount));
+                }
+                // END COST
+
+                // TOTAL
+                $new_row++;
+                $this->excel->getActiveSheet()->SetCellValue('A' . $new_row, lang("total"));
+                $this->excel->getActiveSheet()->getRowDimension($new_row)->setRowHeight(20);
+                $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getFont()
+                    ->setName('Times New Roman')
+                    ->setSize(11)
+                    ->setBold(true);
+
+                $j7 = 0;
+                foreach ($new_billers as $bi2) {
+                    $bill_id = 0;
+                    if ($this->uri->segment(7)) {
+                        $bill_id = $bi2['id'];
+                    } else {
+                        $bill_id = $bi2->id;
+                    }
+
+                    $s_total = 0;
+                    foreach ($sum_cost_per_acc as $sac) {
+                        if ($bill_id == $sac['biller_id']) {
+                            $s_total += $sac['amount'];
+                        }
+                    }
+                    if ($s_total < 0) {
+                        $s_total = '( ' . $this->erp->formatMoney(abs($s_total)) . ' )';
+                    } else {
+                        $s_total = $this->erp->formatMoney(abs($s_total));
+                    }
+
+                    $this->excel->getActiveSheet()->SetCellValue($alphabet[$j7] . $new_row, $s_total);
+                    $this->excel->getActiveSheet()->getStyle($alphabet[$j7] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                    $this->excel->getActiveSheet()->getStyle($alphabet[$j7] . $new_row)->getFont()
+                        ->setName('Times New Roman')
+                        ->setSize(11)
+                        ->setBold(true);
+                    $j7++;
+                }
+                $sum_cost_per_acc = array();
+
+                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j7] . $new_row, $t_cost_display);
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j7] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j7] . $new_row)->getFont()
+                    ->setName('Times New Roman')
+                    ->setSize(11)
+                    ->setBold(true);
+
+            }
+            // END TOTAL
+
+            // TOTAL COST
+            $new_row++;
+            $this->excel->getActiveSheet()->SetCellValue('A' . $new_row, lang("total_cost"));
+            $this->excel->getActiveSheet()->getRowDimension($new_row)->setRowHeight(20);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getFont()
+                ->setName('Times New Roman')
+                ->setSize(11)
+                ->setBold(true);
+
+            $j8 = 0;
+            for ($in = 0; $in < count($new_billers); $in++) {
+                $in_bill_id = 0;
+                if ($this->uri->segment(7)) {
+                    $in_bill_id = $new_billers[$in]['id'];
+                } else {
+                    $in_bill_id = $new_billers[$in]->id;
+                }
+                $total_amt_cost = 0;
+                foreach ($total_cost_array as $val) {
+                    if ($in_bill_id == $val['biller_id']) {
+                        $total_amt_cost += $val['amount'];
+                    }
+                }
+
+                $sum_total_cost[] = array(
+                    'biller_id' => $in_bill_id,
+                    'amount' => $total_amt_cost
+                );
+
+                if ($total_amt_cost < 0) {
+                    $total_amt_cost = '( ' . $this->erp->formatMoney(abs($total_amt_cost)) . ' )';
+                } else {
+                    $total_amt_cost = $this->erp->formatMoney(abs($total_amt_cost));
+                }
+                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j8] . $new_row, $total_amt_cost);
+
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j8] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j8] . $new_row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border:: BORDER_MEDIUM);
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j8] . $new_row)->getFont()
+                    ->setName('Times New Roman')
+                    ->setSize(11)
+                    ->setBold(true);
+
+                $j8++;
+            }
+            $total_cost_display = '';
+            if ($total_cost < 0) {
+                $total_cost_display = '( ' . $this->erp->formatMoney(abs($total_cost)) . ' )';
+            } else {
+                $total_cost_display = $this->erp->formatMoney(abs($total_cost));
+            }
+
+            $this->excel->getActiveSheet()->SetCellValue($alphabet[$j8] . $new_row, $total_cost_display);
+
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j8] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j8] . $new_row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border:: BORDER_MEDIUM);
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j8] . $new_row)->getBorders()->getLeft()->setBorderStyle(PHPExcel_Style_Border:: BORDER_MEDIUM);
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j8] . $new_row)->getFont()
+                ->setName('Times New Roman')
+                ->setSize(11)
+                ->setBold(true);
+            // END TOTAL COST
+
+
+            // GROSS PROFIT/LOSS
+            $new_row++;
+            $this->excel->getActiveSheet()->SetCellValue('A' . $new_row, lang("gross_margin"));
+            $this->excel->getActiveSheet()->getRowDimension($new_row)->setRowHeight(20);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getFont()
+                ->setName('Times New Roman')
+                ->setSize(11)
+                ->setBold(true);
+
+            $j9 = 0;
+            for ($i = 0; $i < count($sum_total_income); $i++) {
+                $amount_per_gross = 0;
+                $amount_per_inc = 0;
+                $amount_per_cost = 0;
+
+                $amount_per_inc = $sum_total_income[$i]['amount'];
+                $amount_per_cost = $sum_total_cost[$i]['amount'];
+
+                $amount_per_gross = $amount_per_inc - $amount_per_cost;
+
+                $sum_total_gross[] = array(
+                    'biller_id' => $sum_total_cost[$i]['biller_id'],
+                    'amount' => $amount_per_gross
+                );
+                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j9] . $new_row, $this->erp->formatMoney($amount_per_gross));
+
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j9] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j9] . $new_row)->getFont()
+                    ->setName('Times New Roman')
+                    ->setSize(11)
+                    ->setBold(true);
+                $j9++;
+            }
+
+            if ((-1) * $total_income - $total_cost < 0) {
+                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j9] . $new_row, "(" . $this->erp->formatMoney(abs((-1) * $total_income - $total_cost)) . ")");
+            } else {
+                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j9] . $new_row, $this->erp->formatMoney(abs((-1) * $total_income - $total_cost)));
+            }
+
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j9] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j9] . $new_row)->getFont()
+                ->setName('Times New Roman')
+                ->setSize(11)
+                ->setBold(true);
+
+            // END GROSS PROFIT/LOSS
+
+
+            // OPERATING EXPENSE
+            $new_row++;
+            $this->excel->getActiveSheet()->SetCellValue('A' . $new_row, lang("operating_expense"));
+            $this->excel->getActiveSheet()->getRowDimension($new_row)->setRowHeight(20);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $this->excel->getActiveSheet()->mergeCells('A' . $new_row . ':' . $alphabet[$j] . $new_row);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getFont()
+                ->setName('Times New Roman')
+                ->setSize(11)
+                ->setBold(true);
+
+            $total_expense = 0;
+            $totalBeforeAyear_expense = 0;
+            foreach ($dataExpense->result() as $row) {
+                $total_expense += $row->amount;
+
+                $query = $this->db->query("SELECT
+                    SUM(erp_gl_trans.amount) AS amount
+                FROM
+                    erp_gl_trans
+                WHERE
+                    account_code = '" . $row->account_code . "'
+                    AND erp_gl_trans.tran_date BETWEEN '$from_date' AND '$to_date' ;");
+                $totalBeforeAyearRows = $query->row();
+                $totalBeforeAyear_expense += $totalBeforeAyearRows->amount;
+                $total_op_per = 0;
+
+                $new_row++;
+                $this->excel->getActiveSheet()->SetCellValue('A' . $new_row, $row->account_code . ' - ' . $row->accountname);
+
+                $ex_details = $this->accounts_model->getBalanceSheetDetailByAccCode($row->account_code, '60,80,90', $from_date, $to_date, json_decode($biller_id));
+                if ($ex_details->num_rows() > 0) {
+                    foreach ($ex_details->result() as $ex) {
+                        $j10 = 0;
+                        $total_op_per += $ex->amount;
+                        $ex_amount = 0;
+                        $ex_amount = $ex->amount;
+                        if ($ex_amount < 0) {
+                            $ex_amount = '( ' . $this->erp->formatMoney(abs($ex->amount)) . ' )';
+                        } else {
+                            $ex_amount = $this->erp->formatMoney(abs($ex->amount));
+                        }
+                        $new_row++;
+                        $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j10] . $new_row, $ex->tran_type);
+                        $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j10 + 1] . $new_row, $this->erp->hrld($ex->tran_date));
+                        $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j10 + 2] . $new_row, $ex->reference_no);
+                        $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j10 + 3] . $new_row, $ex->customer);
+                        $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j10 + 4] . $new_row, $this->erp->decode_html(strip_tags($ex->note)));
+                        $this->excel->getActiveSheet()->getStyle($alphabet0[$j10] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+                        foreach ($billers as $bi2) {
+                            if ($this->uri->segment(7)) {
+                                if ($bi2->id == $this->uri->segment(7)) {
+                                    $total_op_array[] = array(
+                                        'biller_id' => $ex->biller_id,
+                                        'amount' => $ex->amount
+                                    );
+
+                                    $sum_op_per_acc[] = array(
+                                        'biller_id' => $ex->biller_id,
+                                        'amount' => $ex->amount
+                                    );
+
+                                    $this->excel->getActiveSheet()->SetCellValue($alphabet[$j10] . $new_row, $ex_amount);
+                                }
+                            } else {
+
+                                if ($bi2->id == $ex->biller_id) {
+                                    $sum_op_per_acc[] = array(
+                                        'biller_id' => $ex->biller_id,
+                                        'amount' => $ex->amount
+                                    );
+
+                                    $total_op_array[] = array(
+                                        'biller_id' => $ex->biller_id,
+                                        'amount' => $ex->amount
+                                    );
+
+                                    $this->excel->getActiveSheet()->SetCellValue($alphabet[$j10] . $new_row, $ex_amount);
+
+                                } else {
+                                    $this->excel->getActiveSheet()->SetCellValue($alphabet[$j10] . $new_row, $this->erp->formatMoney(0));
+                                }
+                            }
+
+                            $this->excel->getActiveSheet()->getStyle($alphabet[$j10] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                            $j10++;
+                        }
+
+                        $this->excel->getActiveSheet()->SetCellValue($alphabet[$j10] . $new_row, $ex_amount);
+                        $this->excel->getActiveSheet()->getStyle($alphabet[$j10] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                        $this->excel->getActiveSheet()->getStyle($alphabet[$j10] . $new_row)->getFont()
+                            ->setName('Times New Roman')
+                            ->setSize(11)
+                            ->setBold(true);
+
+                    }
+                } else {
+                    $total_op_per = $row->amount;
+
+                }
+                if ($total_op_per < 0) {
+                    $total_op_per = '( ' . $this->erp->formatMoney(abs($total_op_per)) . ' )';
+                } else {
+                    $total_op_per = $this->erp->formatMoney(abs($total_op_per));
+                }
+
+
+                // OPERATING EXPENSE
+                $new_row++;
+                $this->excel->getActiveSheet()->SetCellValue('A' . $new_row, lang("total"));
+                $this->excel->getActiveSheet()->getRowDimension($new_row)->setRowHeight(20);
+                $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getFont()
+                    ->setName('Times New Roman')
+                    ->setSize(11)
+                    ->setBold(true);
+
+                $j11 = 0;
+                foreach ($new_billers as $bi2) {
+                    $bill_id = 0;
+                    if ($this->uri->segment(7)) {
+                        $bill_id = $bi2['id'];
+                    } else {
+                        $bill_id = $bi2->id;
+                    }
+
+                    $s_total1 = 0;
+                    foreach ($sum_op_per_acc as $sac) {
+                        if ($bill_id == $sac['biller_id']) {
+                            $s_total1 += $sac['amount'];
+                        }
+                    }
+                    if ($s_total1 < 0) {
+                        $s_total1 = '( ' . $this->erp->formatMoney(abs($s_total1)) . ' )';
+                    } else {
+                        $s_total1 = $this->erp->formatMoney(abs($s_total1));
+                    }
+
+                    $this->excel->getActiveSheet()->SetCellValue($alphabet[$j11] . $new_row, $s_total1);
+
+                    $this->excel->getActiveSheet()->getStyle($alphabet[$j11] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                    $this->excel->getActiveSheet()->getStyle($alphabet[$j11] . $new_row)->getFont()
+                        ->setName('Times New Roman')
+                        ->setSize(11)
+                        ->setBold(true);
+                    $j11++;
+                }
+                $sum_op_per_acc = array();
+
+                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j11] . $new_row, $total_op_per);
+
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j11] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j11] . $new_row)->getFont()
+                    ->setName('Times New Roman')
+                    ->setSize(11)
+                    ->setBold(true);
+
+            }
+
+            // TOTAL OPERATING EXPENSE
+            $new_row++;
+            $this->excel->getActiveSheet()->SetCellValue('A' . $new_row, lang("total_expense"));
+            $this->excel->getActiveSheet()->getRowDimension($new_row)->setRowHeight(20);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getFont()
+                ->setName('Times New Roman')
+                ->setSize(11)
+                ->setBold(true);
+
+            $j12 = 0;
+            for ($i = 0; $i < count($new_billers); $i++) {
+                $bill_id = 0;
+                if ($this->uri->segment(7)) {
+                    $bill_id = $new_billers[$i]['id'];
+                } else {
+                    $bill_id = $new_billers[$i]->id;
+                }
+                $total_amt_op = 0;
+                foreach ($total_op_array as $val) {
+                    if ($bill_id == $val['biller_id']) {
+                        $total_amt_op += $val['amount'];
+                    }
+                }
+
+                $sum_total_op[] = array(
+                    'biller_id' => $bill_id,
+                    'amount' => $total_amt_op
+                );
+
+                if ($total_amt_op < 0) {
+                    $total_amt_op = '( ' . $this->erp->formatMoney(abs($total_amt_op)) . ' )';
+                } else {
+                    $total_amt_op = $this->erp->formatMoney(abs($total_amt_op));
+                }
+
+                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j12] . $new_row, $total_amt_op);
+
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j12] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j12] . $new_row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border:: BORDER_MEDIUM);
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j12] . $new_row)->getFont()
+                    ->setName('Times New Roman')
+                    ->setSize(11)
+                    ->setBold(true);
+                $j12++;
+            }
+            $total_expense_display = '';
+            if ($total_expense < 0) {
+                $total_expense_display = '( ' . $this->erp->formatMoney(abs($total_expense)) . ' )';
+            } else {
+                $total_expense_display = $this->erp->formatMoney(abs($total_expense));
+            }
+
+            $this->excel->getActiveSheet()->SetCellValue($alphabet[$j12] . $new_row, $total_expense_display);
+
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j12] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j12] . $new_row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border:: BORDER_MEDIUM);
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j12] . $new_row)->getBorders()->getLeft()->setBorderStyle(PHPExcel_Style_Border:: BORDER_MEDIUM);
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j12] . $new_row)->getFont()
+                ->setName('Times New Roman')
+                ->setSize(11)
+                ->setBold(true);
+
+            // END TOTAL OPERATING EXPENSE
+
+
+            // Profit NET/LOSS
+            $new_row++;
+            $this->excel->getActiveSheet()->SetCellValue('A' . $new_row, lang("profits"));
+            $this->excel->getActiveSheet()->getRowDimension($new_row)->setRowHeight(20);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $this->excel->getActiveSheet()->getStyle('A' . $new_row)->getFont()
+                ->setName('Times New Roman')
+                ->setSize(11)
+                ->setBold(true);
+
+            $j13 = 0;
+            for ($i = 0; $i < count($sum_total_gross); $i++) {
+                $per_gross = 0;
+                $per_exp = 0;
+
+                $per_gross = $sum_total_gross[$i]['amount'];
+                $per_exp = $sum_total_op[$i]['amount'];
+
+                $total_per_op_ex = ($per_gross - $per_exp);
+
+                if ($total_per_op_ex < 0) {
+                    $total_per_op_ex = '( ' . $this->erp->formatMoney(abs($total_per_op_ex)) . ' )';
+                } else {
+                    $total_per_op_ex = $this->erp->formatMoney(abs($total_per_op_ex));
+                }
+
+                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j13] . $new_row, $total_per_op_ex);
+
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j13] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                $this->excel->getActiveSheet()->getStyle($alphabet[$j13] . $new_row)->getFont()
+                    ->setName('Times New Roman')
+                    ->setSize(11)
+                    ->setBold(true);
+                $j13++;
+            }
+
+
+            $total_profit_per = ((-1) * $total_income - $total_cost) - $total_expense;
+            $total_profit_loss_display = '';
+            if ($total_profit_per < 0) {
+                $total_profit_loss_display = '( ' . $this->erp->formatMoney(abs($total_profit_per)) . ' )';
+            } else {
+                $total_profit_loss_display = $this->erp->formatMoney(abs($total_profit_per));
+            }
+
+            $this->excel->getActiveSheet()->SetCellValue($alphabet[$j13] . $new_row, $total_profit_loss_display);
+
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j13] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+            $this->excel->getActiveSheet()->getStyle($alphabet[$j13] . $new_row)->getFont()
+                ->setName('Times New Roman')
+                ->setSize(11)
+                ->setBold(true);
+
+            // End Profit NET/LOSS
+
+
+            $filename = 'Income_Statement Detail' . date('Y_m_d_H_i_s');
+            if ($xls) {
+                header('Content-Type: application/vnd.ms-excel');
+                header('Content-Disposition: attachment;filename="' . $filename . '.xls"');
+                header('Cache-Control: max-age=0');
+
+                $objWriter = PHPExcel_IOFactory::createWriter($this->excel, 'Excel5');
+                return $objWriter->save('php://output');
+            }
+
+            redirect($_SERVER["HTTP_REFERER"]);
+        }
+
         $this->page_construct('reports/income_statement_detail', $meta, $this->data);
-	}
+    }
 	
 	function balance_sheet($start_date = NULL, $end_date = NULL, $pdf = NULL, $xls = NULL, $biller_id = NULL)
     {
