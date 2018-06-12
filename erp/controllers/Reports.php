@@ -11376,6 +11376,7 @@ class Reports extends MY_Controller
                     ->setName('Times New Roman')
                     ->setSize(11)
                     ->setBold(true);
+                $new_row++;
             }
 
             // TOTAL INCOME
@@ -11406,7 +11407,7 @@ class Reports extends MY_Controller
                     'biller_id' => $bill_id,
                     'amount' => $total_amt_inc
                 );
-                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j5] . $new_row, $this->erp->formatMoney(abs($total_amt_inc)));
+                $this->excel->getActiveSheet()->SetCellValue($alphabet[$j5] . $new_row, number_format(abs($total_amt_inc), 2));
 
                 $this->excel->getActiveSheet()->getStyle($alphabet[$j5] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
                 $this->excel->getActiveSheet()->getStyle($alphabet[$j5] . $new_row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border:: BORDER_MEDIUM);
@@ -11418,7 +11419,7 @@ class Reports extends MY_Controller
                 $j5++;
             }
 
-            $this->excel->getActiveSheet()->SetCellValue($alphabet[$j5] . $new_row, $this->erp->formatMoney((-1) * $total_income));
+            $this->excel->getActiveSheet()->SetCellValue($alphabet[$j5] . $new_row, number_format((-1) * $total_income, 2));
 
             $this->excel->getActiveSheet()->getStyle($alphabet[$j5] . $new_row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
             $this->excel->getActiveSheet()->getStyle($alphabet[$j5] . $new_row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border:: BORDER_MEDIUM);
