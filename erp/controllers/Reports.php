@@ -11347,9 +11347,9 @@ class Reports extends MY_Controller
                         }
                     }
                     if ($s_total < 0) {
-                        $s_total = '( ' . $this->erp->formatMoney(abs($s_total)) . ' )';
+                        $s_total = '( ' . number_format(abs($s_total), 2) . ' )';
                     } else {
-                        $s_total = $this->erp->formatMoney(abs($s_total));
+                        $s_total = number_format(abs($s_total), 2);
                     }
                     $this->excel->getActiveSheet()->SetCellValue($alphabet[$j4] . $new_row, $s_total);
 
@@ -11365,9 +11365,9 @@ class Reports extends MY_Controller
                 $sum_income_per_acc = array();
                 $itotal_display = $itotal_amount;
                 if ($itotal_display < 0) {
-                    $itotal_display = '( ' . $this->erp->formatMoney(abs($itotal_amount)) . ' )';
+                    $itotal_display = '( ' . number_format(abs($itotal_amount), 2) . ' )';
                 } else {
-                    $itotal_display = $this->erp->formatMoney(abs($itotal_amount));
+                    $itotal_display = number_format(abs($itotal_amount), 2);
                 }
 
                 $this->excel->getActiveSheet()->SetCellValue($alphabet[$j4] . $new_row, $itotal_display);
@@ -11527,9 +11527,9 @@ class Reports extends MY_Controller
                 $t_cost_display = $ctotal_amount;
 
                 if ($t_cost_display < 0) {
-                    $t_cost_display = '( ' . $this->erp->formatMoney(abs($ctotal_amount)) . ' )';
+                    $t_cost_display = '( ' . number_format(abs($ctotal_amount), 2) . ' )';
                 } else {
-                    $t_cost_display = $this->erp->formatMoney(abs($ctotal_amount));
+                    $t_cost_display = number_format(abs($ctotal_amount), 2);
                 }
                 // END COST
 
@@ -11559,9 +11559,9 @@ class Reports extends MY_Controller
                         }
                     }
                     if ($s_total < 0) {
-                        $s_total = '( ' . $this->erp->formatMoney(abs($s_total)) . ' )';
+                        $s_total = '( ' . number_format(abs($s_total), 2) . ' )';
                     } else {
-                        $s_total = $this->erp->formatMoney(abs($s_total));
+                        $s_total = number_format(abs($s_total), 2);
                     }
 
                     $this->excel->getActiveSheet()->SetCellValue($alphabet[$j7] . $new_row, $s_total);
@@ -11615,9 +11615,9 @@ class Reports extends MY_Controller
                 );
 
                 if ($total_amt_cost < 0) {
-                    $total_amt_cost = '( ' . $this->erp->formatMoney(abs($total_amt_cost)) . ' )';
+                    $total_amt_cost = '( ' . number_format(abs($total_amt_cost), 2) . ' )';
                 } else {
-                    $total_amt_cost = $this->erp->formatMoney(abs($total_amt_cost));
+                    $total_amt_cost = number_format(abs($total_amt_cost), 2);
                 }
                 $this->excel->getActiveSheet()->SetCellValue($alphabet[$j8] . $new_row, $total_amt_cost);
 
@@ -11632,9 +11632,9 @@ class Reports extends MY_Controller
             }
             $total_cost_display = '';
             if ($total_cost < 0) {
-                $total_cost_display = '( ' . $this->erp->formatMoney(abs($total_cost)) . ' )';
+                $total_cost_display = '( ' . number_format(abs($total_cost), 2) . ' )';
             } else {
-                $total_cost_display = $this->erp->formatMoney(abs($total_cost));
+                $total_cost_display = number_format(abs($total_cost), 2);
             }
 
             $this->excel->getActiveSheet()->SetCellValue($alphabet[$j8] . $new_row, $total_cost_display);
@@ -11737,9 +11737,9 @@ class Reports extends MY_Controller
                         $ex_amount = 0;
                         $ex_amount = $ex->amount;
                         if ($ex_amount < 0) {
-                            $ex_amount = '( ' . $this->erp->formatMoney(abs($ex->amount)) . ' )';
+                            $ex_amount = '( ' . number_format(abs($ex->amount), 2) . ' )';
                         } else {
-                            $ex_amount = $this->erp->formatMoney(abs($ex->amount));
+                            $ex_amount = number_format(abs($ex->amount), 2);
                         }
                         $new_row++;
                         $this->excel->getActiveSheet()->SetCellValue($alphabet0[$j10] . $new_row, $ex->tran_type);
@@ -11801,9 +11801,9 @@ class Reports extends MY_Controller
 
                 }
                 if ($total_op_per < 0) {
-                    $total_op_per = '( ' . $this->erp->formatMoney(abs($total_op_per)) . ' )';
+                    $total_op_per = '( ' . number_format(abs($total_op_per), 2) . ' )';
                 } else {
-                    $total_op_per = $this->erp->formatMoney(abs($total_op_per));
+                    $total_op_per = number_format(abs($total_op_per), 2);
                 }
 
 
@@ -11833,9 +11833,9 @@ class Reports extends MY_Controller
                         }
                     }
                     if ($s_total1 < 0) {
-                        $s_total1 = '( ' . $this->erp->formatMoney(abs($s_total1)) . ' )';
+                        $s_total1 = '( ' . number_format(abs($s_total1), 2) . ' )';
                     } else {
-                        $s_total1 = $this->erp->formatMoney(abs($s_total1));
+                        $s_total1 = number_format(abs($s_total1), 2);
                     }
 
                     $this->excel->getActiveSheet()->SetCellValue($alphabet[$j11] . $new_row, $s_total1);
@@ -11890,9 +11890,9 @@ class Reports extends MY_Controller
                 );
 
                 if ($total_amt_op < 0) {
-                    $total_amt_op = '( ' . $this->erp->formatMoney(abs($total_amt_op)) . ' )';
+                    $total_amt_op = '( ' . number_format(abs($total_amt_op), 2) . ' )';
                 } else {
-                    $total_amt_op = $this->erp->formatMoney(abs($total_amt_op));
+                    $total_amt_op = number_format(abs($total_amt_op), 2);
                 }
 
                 $this->excel->getActiveSheet()->SetCellValue($alphabet[$j12] . $new_row, $total_amt_op);
@@ -11907,9 +11907,9 @@ class Reports extends MY_Controller
             }
             $total_expense_display = '';
             if ($total_expense < 0) {
-                $total_expense_display = '( ' . $this->erp->formatMoney(abs($total_expense)) . ' )';
+                $total_expense_display = '( ' . number_format(abs($total_expense), 2) . ' )';
             } else {
-                $total_expense_display = $this->erp->formatMoney(abs($total_expense));
+                $total_expense_display = number_format(abs($total_expense), 2);
             }
 
             $this->excel->getActiveSheet()->SetCellValue($alphabet[$j12] . $new_row, $total_expense_display);
@@ -11946,9 +11946,9 @@ class Reports extends MY_Controller
                 $total_per_op_ex = ($per_gross - $per_exp);
 
                 if ($total_per_op_ex < 0) {
-                    $total_per_op_ex = '( ' . $this->erp->formatMoney(abs($total_per_op_ex)) . ' )';
+                    $total_per_op_ex = '( ' . number_format(abs($total_per_op_ex), 2) . ' )';
                 } else {
-                    $total_per_op_ex = $this->erp->formatMoney(abs($total_per_op_ex));
+                    $total_per_op_ex = number_format(abs($total_per_op_ex), 2);
                 }
 
                 $this->excel->getActiveSheet()->SetCellValue($alphabet[$j13] . $new_row, $total_per_op_ex);
@@ -11965,9 +11965,9 @@ class Reports extends MY_Controller
             $total_profit_per = ((-1) * $total_income - $total_cost) - $total_expense;
             $total_profit_loss_display = '';
             if ($total_profit_per < 0) {
-                $total_profit_loss_display = '( ' . $this->erp->formatMoney(abs($total_profit_per)) . ' )';
+                $total_profit_loss_display = '( ' . number_format(abs($total_profit_per), 2) . ' )';
             } else {
-                $total_profit_loss_display = $this->erp->formatMoney(abs($total_profit_per));
+                $total_profit_loss_display = number_format(abs($total_profit_per), 2);
             }
 
             $this->excel->getActiveSheet()->SetCellValue($alphabet[$j13] . $new_row, $total_profit_loss_display);
