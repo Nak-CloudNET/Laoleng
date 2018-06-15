@@ -104,7 +104,7 @@
 									$num_col++;
 								}
 								?>
-								<th><div class="fix-text" style="width:150px;"><?= lang("total_amount") ?></div></th>
+								<th><div class="fix-text" style="width:200px;"><?= lang("total_amount") ?></div></th>
 							</tr>
                         </thead>
 
@@ -480,6 +480,10 @@
 														WHERE DATE(tran_date) = '$totalBeforeAyear' AND	erp_gl_trans.sectionid IN ('40,70') GROUP BY erp_gl_trans.account_code;");
 								$total_income_beforeAyear = $queryIncom->amount;
 
+                                foreach($queryIncom->result() as $rowm){
+
+                                    echo $rowm->amount;
+                                }
 								$queryExpense = $this->db->query("SELECT sum(erp_gl_trans.amount) AS amount FROM
 															erp_gl_trans
 														INNER JOIN erp_gl_charts ON erp_gl_charts.accountcode = erp_gl_trans.account_code
@@ -502,6 +506,7 @@
 								
 								foreach($dataExpense->result() as $rowexpense){
 									$total_expense += $rowexpense->amount;
+
 								}
 								foreach($dataAllExpense->result() as $rowallexp){
 									$retained_exp_arr[] = array(
@@ -552,6 +557,7 @@
 								}
 								
 								$total_per_retained = $r_exp_per + $r_inc_per;
+
 								$total_per_retained = (-1)*$total_per_retained;
 								$total_retained_arr[] = array(
 									'biller_id' => $in_bill_id1,
@@ -563,6 +569,7 @@
 									$total_per_retained = number_format(abs($total_per_retained),2);
 								}
 								echo '<td><div class="fix-text text-right">'. $total_per_retained .'</div></td>';
+
 							}
 							?>
 							<?php if($total_retained<0) { ?>						
@@ -589,13 +596,14 @@
 								echo '</tr>';
 								
 								foreach($eqDetails->result() as $eqD){
+
 									echo '</tr>';
 									echo '<td class="text-center"><div class="fix-text">'. $eqD->tran_type .'</div></td>';
 									echo '<td><div class="fix-text">'. $this->erp->hrld($eqD->tran_date) .'</div></td>';
 									echo '<td><div class="fix-text">'. $eqD->reference_no .'</div></td>';
 									echo '<td><div class="fix-text">'. $eqD->customer .'</div></td>';
 									echo '<td><div class="fix-text">'. $this->erp->decode_html(strip_tags($eqD->note)) .'</div></td>';
-									?>
+								?>
 									
 									<?php foreach ($new_billers as $bi2) {
 										$bi2_biller = 0;
@@ -826,12 +834,12 @@
 		
         $('#pdf').click(function (event) {
             event.preventDefault();
-            window.location.href = "<?=site_url('reports/balance_sheet/'. $start .'/'.$end.'/pdf/0/'.$biller_id)?>";
+            window.location.href = "<?=site_url('reports/balance_sheet_details/'. $start .'/'.$end.'/pdf/0/'.$biller_id)?>";
             return false;
         });
 		$('#xls').click(function (event) {
             event.preventDefault();
-            window.location.href = "<?=site_url('reports/balance_sheet/'. $start .'/'.$end.'/0/xls/'.$biller_id)?>";
+            window.location.href = "<?=site_url('reports/balance_sheet_details/'. $start .'/'.$end.'/0/xls/'.$biller_id)?>";
             return false;
         });
         $('#image').click(function (event) {

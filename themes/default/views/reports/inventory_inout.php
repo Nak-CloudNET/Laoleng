@@ -366,7 +366,7 @@ $(document).ready(function(){
 									}
 								?>
 								<tr>
-									<td style=" text-align:right;background:#F0F8FF;"><b>Total <span style="color:orange;">>></span> <?=$rc->name;?>:</b></td>
+									<td style=" text-align:right;background:#F0F8FF;"><b>Total <span style="color:orange;"></span> <?=$rc->name;?>:</b></td>
 									<td style='text-align:right;background:#F0F8FF;'>
 												<b><?=$this->erp->formatDecimal($begin_balance?$begin_balance:'')?></b>
 									</td>
