@@ -12492,8 +12492,8 @@ class Reports extends MY_Controller
                         $this->excel->getActiveSheet()->mergeCells('A' . $Asset.':B' . $Asset);
                         $this->excel->getActiveSheet()->SetCellValue('C' . $Asset, $asD->tran_date);
                         $this->excel->getActiveSheet()->SetCellValue('D' . $Asset, $asD->reference_no);
-                        $this->excel->getActiveSheet()->SetCellValue('E' . $Asset,'');
-                        $this->excel->getActiveSheet()->SetCellValue('F' . $Asset, '');
+                        $this->excel->getActiveSheet()->SetCellValue('E' . $Asset,$asD->customer);
+                        $this->excel->getActiveSheet()->SetCellValue('F' . $Asset, strip_tags($asD->note));
                         if((-1)*$asD->amount < 0) {
                             $this->excel->getActiveSheet()->SetCellValue('G' . $Asset, number_format(abs($asD->amount),2));
                         }else{
@@ -12512,8 +12512,8 @@ class Reports extends MY_Controller
                         $this->excel->getActiveSheet()->mergeCells('A' . $Asset.':B' . $Asset);
                         $this->excel->getActiveSheet()->SetCellValue('C' . $Asset, $asD->tran_date);
                         $this->excel->getActiveSheet()->SetCellValue('D' . $Asset, $asD->reference_no);
-                        $this->excel->getActiveSheet()->SetCellValue('E' . $Asset,'');
-                        $this->excel->getActiveSheet()->SetCellValue('F' . $Asset, '');
+                        $this->excel->getActiveSheet()->SetCellValue('E' . $Asset,$asD->customer);
+                        $this->excel->getActiveSheet()->SetCellValue('F' . $Asset, strip_tags($asD->note));
                         if((-1)*$asD->amount < 0) {
                             $this->excel->getActiveSheet()->SetCellValue('G' . $Asset, number_format(abs($asD->amount),2));
                         }else{
@@ -12570,11 +12570,10 @@ class Reports extends MY_Controller
 			$this->excel->getActiveSheet()->mergeCells('A'.$eq.':B'.$eq)->setCellValue('A' . $eq , lang('liabilities'));
 			$this->excel->getActiveSheet()->mergeCells('C'.$eq.':F'.$eq);
 			$total_liability = 0;
-            $total_liabilitys = 0;
+
 			$totalBeforeAyear_liability = 0;
 			$Liability = $Asset + 2;
 			foreach($dataLiability->result() as $rowlia){
-				$total_liability += $rowlia->amount;
                 $libDetails = $this->accounts_model->getBalanceSheetDetailPurByAccCode($rowlia->account_code, '20,21',$from_date,$end_dates,$biller_id);
 
                 $query = $this->db->query("SELECT
@@ -12588,7 +12587,7 @@ class Reports extends MY_Controller
 				$totalBeforeAyear_liability += ($totalBeforeAyearRows->NegativeTotal + $totalBeforeAyearRows->PostiveTotal);
                 $this->excel->getActiveSheet()->SetCellValue('A' . $Liability, $rowlia->account_code.' - '.$rowlia->accountname);
                 $this->excel->getActiveSheet()->mergeCells('A' . $Liability.':H' . $Liability);
-
+                $total_liabilitys = 0;
                 foreach ($libDetails->result() as $libD) {
                     if ($rowlia->amount > 0) {
                         $Liability++;
@@ -12596,8 +12595,8 @@ class Reports extends MY_Controller
                         $this->excel->getActiveSheet()->mergeCells('A' . $Liability.':B' . $Liability);
                         $this->excel->getActiveSheet()->SetCellValue('C' . $Liability, $libD->tran_date);
                         $this->excel->getActiveSheet()->SetCellValue('D' . $Liability, $libD->reference_no);
-                        $this->excel->getActiveSheet()->SetCellValue('E' . $Liability,'');
-                        $this->excel->getActiveSheet()->SetCellValue('F' . $Liability, '');
+                        $this->excel->getActiveSheet()->SetCellValue('E' . $Liability,$libD->customer);
+                        $this->excel->getActiveSheet()->SetCellValue('F' . $Liability, strip_tags($libD->note));
                         if($libD->amount < 0) {
                             $this->excel->getActiveSheet()->SetCellValue('G' . $Liability, number_format(abs($libD->amount),2));
                         }else{
@@ -12614,8 +12613,8 @@ class Reports extends MY_Controller
                         $this->excel->getActiveSheet()->mergeCells('A' . $Liability.':B' . $Liability);
                         $this->excel->getActiveSheet()->SetCellValue('C' . $Liability, $libD->tran_date);
                         $this->excel->getActiveSheet()->SetCellValue('D' . $Liability, $libD->reference_no);
-                        $this->excel->getActiveSheet()->SetCellValue('E' . $Liability,'');
-                        $this->excel->getActiveSheet()->SetCellValue('F' . $Liability, '');
+                        $this->excel->getActiveSheet()->SetCellValue('E' . $Liability,$libD->customer);
+                        $this->excel->getActiveSheet()->SetCellValue('F' . $Liability, strip_tags($libD->note));
                         if($libD->amount < 0) {
                             $this->excel->getActiveSheet()->SetCellValue('G' . $Liability, number_format(abs($libD->amount),2));
                         }else{
@@ -12627,24 +12626,29 @@ class Reports extends MY_Controller
                             $this->excel->getActiveSheet()->SetCellValue('H' . $Liability, '( ' . number_format(abs($libD->amount), 2) . ' )');
                         }
                     }
-                    $total_liabilitys+=$libD->amount;
+
                 }
+                $total_liabilitys+=$rowlia->amount;
                 $Liability++;
+
                 $this->excel->getActiveSheet()->getStyle('A'.$Liability.':B'.$Liability)->applyFromArray($bold);
                 $this->excel->getActiveSheet()->SetCellValue('A' . $Liability, lang('total'));
                 $this->excel->getActiveSheet()->mergeCells('A' . $Liability.':B' . $Liability);
-                if($total_liabilitys < 0) {
-                    $this->excel->getActiveSheet()->SetCellValue('G' . $Liability, number_format(abs($total_liabilitys),2));
-                }else{
-                    $this->excel->getActiveSheet()->SetCellValue('G' . $Liability, '( ' . number_format(abs($total_liabilitys), 2) . ' )');
-                }
-                if($total_liabilitys < 0) {
-                    $this->excel->getActiveSheet()->SetCellValue('H' . $Liability, number_format(abs($total_liabilitys),2));
-                }else{
-                    $this->excel->getActiveSheet()->SetCellValue('H' . $Liability, '( ' . number_format(abs($total_liabilitys), 2) . ' )');
-                }
+
+                    if($total_liabilitys < 0) {
+                        $this->excel->getActiveSheet()->SetCellValue('G' . $Liability, number_format(abs($total_liabilitys),2));
+                    }else{
+                        $this->excel->getActiveSheet()->SetCellValue('G' . $Liability, '( ' . number_format(abs($total_liabilitys), 2) . ' )');
+                    }
+                    if($total_liabilitys < 0) {
+                        $this->excel->getActiveSheet()->SetCellValue('H' . $Liability, number_format(abs($total_liabilitys),2));
+
+                    }else{
+                        $this->excel->getActiveSheet()->SetCellValue('H' . $Liability,  number_format(abs($total_liabilitys), 2) );
+                    }
                 $this->excel->getActiveSheet()->mergeCells('C' . $Liability.':F' . $Liability);
                 $Liability++;
+                $total_liability +=$rowlia->amount;
 			}
 			
 			$this->excel->getActiveSheet()->getStyle('A'.($Asset+2).':A'.($Liability-1))->getAlignment()->setIndent(2);
@@ -12652,15 +12656,15 @@ class Reports extends MY_Controller
 			$this->excel->getActiveSheet()->SetCellValue('A' . $Liability, lang('total_liabilities'));
             $this->excel->getActiveSheet()->mergeCells('A' . $Liability.':B' . $Liability);
             $this->excel->getActiveSheet()->mergeCells('C' . $Liability.':F' . $Liability);
-            if($total_liabilitys < 0) {
+            if($total_liability < 0) {
                 $this->excel->getActiveSheet()->SetCellValue('G' . $Liability, number_format(abs($total_liability),2));
             }else{
                 $this->excel->getActiveSheet()->SetCellValue('G' . $Liability, '( ' . number_format(abs($total_liability), 2) . ' )');
             }
-            if($total_liabilitys < 0) {
+            if($total_liability < 0) {
                 $this->excel->getActiveSheet()->SetCellValue('H' . $Liability, number_format(abs($total_liability),2));
             }else{
-                $this->excel->getActiveSheet()->SetCellValue('H' . $Liability, '( ' . number_format(abs($total_liability), 2) . ' )');
+                $this->excel->getActiveSheet()->SetCellValue('H' . $Liability,  number_format(abs($total_liability), 2) );
             }
 
 			$equ = $Liability + 1;
@@ -12767,20 +12771,20 @@ class Reports extends MY_Controller
             $this->excel->getActiveSheet()->mergeCells('A' . $equity.':f' . $equity);
 			$this->excel->getActiveSheet()->SetCellValue('G' . $equity, number_format(abs($total_qty),2));
 			$this->excel->getActiveSheet()->SetCellValue('H' . $equity, number_format(abs($total_qty),2));
-            $total_liabilities_equities=(-1)*$total_liability+$total_qty;
+
             $totalL = $equity + 1;
 			$this->excel->getActiveSheet()->getStyle('B'.$totalL.':H'.$totalL)->applyFromArray($bold);
 			$this->excel->getActiveSheet()->SetCellValue('A' . $totalL, lang('total_liabilities_equities'));
             $this->excel->getActiveSheet()->mergeCells('A' . $totalL.':F' . $totalL);
-			if((-1)*$total_liabilities_equities < 0) {
-                $this->excel->getActiveSheet()->SetCellValue('G' . $totalL, number_format(abs($total_liabilities_equities),2));
+			if(($total_liability+$total_qty) < 0) {
+                $this->excel->getActiveSheet()->SetCellValue('G' . $totalL, number_format(abs((-1)*$total_liability+$total_qty),2));
             }else{
-                $this->excel->getActiveSheet()->SetCellValue('G' . $totalL, '( ' . number_format(abs($total_liabilities_equities), 2) . ' )');
+                $this->excel->getActiveSheet()->SetCellValue('G' . $totalL, '( ' . number_format(abs((-1)*$total_liability+$total_qty), 2) . ' )');
             }
-            if((-1)*$total_liabilities_equities < 0) {
-                $this->excel->getActiveSheet()->SetCellValue('H' . $totalL, number_format(abs($total_liabilities_equities),2));
+            if((-1)*($total_liability+$total_qty) < 0) {
+                $this->excel->getActiveSheet()->SetCellValue('H' . $totalL,number_format(abs($total_liability+$total_qty),2));
             }else{
-                $this->excel->getActiveSheet()->SetCellValue('H' . $totalL, '( ' . number_format(abs($total_liabilities_equities), 2) . ' )');
+                $this->excel->getActiveSheet()->SetCellValue('H' . $totalL,  number_format(abs((-1)*$total_liability+$total_qty), 2) );
             }
 
 			$this->excel->getActiveSheet()->getColumnDimension('A')->setWidth(20);
