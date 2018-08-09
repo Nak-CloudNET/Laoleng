@@ -106,9 +106,11 @@
                                 <label class="control-label" for="warehouse"><?= lang("customer"); ?></label>
                                 <?php
 								$cu = array(""=>"ALL");
-								$cupp = $this->db->select("customer_id,customer")->group_by("customer_id")->get("erp_sales")->result();
+								$cupp = $this->db->select("erp_companies.id,erp_companies.name,")
+                                    ->group_by("id")
+                                    ->get("erp_companies")->result();
                                 foreach ($cupp as $cup) {
-                                    $cu[$cup->customer_id] = $cup->customer;
+                                    $cu[$cup->id] = $cup->name;
                                 }
                                 echo form_dropdown('customer', $cu, (isset($_POST['customer']) ? $_POST['customer'] : ""), 'class="form-control" id="customer" data-placeholder="' . $this->lang->line("select") . " " . $this->lang->line("customer") . '"');
                                 ?>

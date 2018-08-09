@@ -104,7 +104,18 @@
                                 <label class="control-label" for="warehouse"><?= lang("supplier"); ?></label>
                                 <?php
 								$su = array(""=>"ALL");
-								$supp = $this->db->select("supplier_id,supplier")->group_by("supplier_id")->get("erp_purchases")->result();
+								$supp = $this->db->select("supplier_id,
+								                            (
+                                                                CASE
+                                                                WHEN erp_purchases.supplier != '' THEN
+                                                                    erp_purchases.supplier
+                                                                ELSE
+                                                                    erp_companies.`name`
+                                                                END
+                                                            ) AS supplier
+                                                          ")
+                                    ->join('erp_companies', 'erp_companies.id = erp_purchases.supplier_id', 'left')
+                                    ->group_by("supplier")->get("erp_purchases")->result();
                                 foreach ($supp as $sup) {
                                     $su[$sup->supplier_id] = $sup->supplier;
                                 }
